@@ -1,0 +1,14 @@
+@import "katex/dist/katex.min.css";
+@import "@phosphor-icons/web/regular/style.css";
+@import "@phosphor-icons/web/fill/style.css";
+@import "./theme.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+}

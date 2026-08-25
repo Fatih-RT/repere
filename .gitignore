@@ -1,0 +1,16 @@
+node_modules/
+dist/
+build/
+.env
+.env.local
+*.log
+*.tsbuildinfo
+.DS_Store
+apps/web/.vite/
+
+# PocketBase runtime data and served frontend — never committed, only
+# pb_migrations/ (the versioned schema) is.
+pb_data/*
+!pb_data/.gitkeep
+pb_public/*
+!pb_public/.gitkeep
