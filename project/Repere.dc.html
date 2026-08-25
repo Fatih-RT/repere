@@ -1,0 +1,1412 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css">
+<style>
+  body { margin: 0; background: #0d0f18; -webkit-font-smoothing: antialiased; }
+  * { box-sizing: border-box; }
+  button { font: inherit; cursor: pointer; }
+  input, select, textarea { font: inherit; }
+  a { color: var(--accent, #d98aa4); text-underline-offset: 3px; }
+  a:hover { color: var(--accent-hi, #e6a6ba); }
+  :focus { outline: none; }
+  :focus-visible { outline: 2px solid var(--accent, #d98aa4); outline-offset: 2px; }
+  ::selection { background: color-mix(in srgb, var(--accent, #d98aa4) 30%, transparent); }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</helmet>
+<div style="{{ rootStyle }}">
+
+<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:10px 18px;background:#14161f;border-bottom:1px solid rgba(233,233,237,.12);color:#e9e9ed;font:400 12px/1.4 Inter,system-ui,sans-serif;position:sticky;top:0;z-index:40">
+  <div style="display:flex;align-items:center;gap:8px;margin-right:auto">
+    <div style="width:9px;height:9px;background:#d98aa4;transform:rotate(45deg);border-radius:1px"></div>
+    <span style="font-weight:500;letter-spacing:-.01em">Repère</span>
+    <span style="color:rgba(233,233,237,.42)">prototype interactif</span>
+  </div>
+  <sc-for list="{{ chromeGroups }}" as="grp" hint-placeholder-count="5">
+    <div style="display:flex;align-items:center;gap:7px">
+      <span style="color:rgba(233,233,237,.40);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase">{{ grp.label }}</span>
+      <div style="display:inline-flex;border:1px solid rgba(233,233,237,.14);border-radius:8px;overflow:hidden">
+        <sc-for list="{{ grp.opts }}" as="opt" hint-placeholder-count="3">
+          <button type="button" onClick="{{ opt.onSelect }}" style="{{ opt.style }}">{{ opt.label }}</button>
+        </sc-for>
+      </div>
+    </div>
+  </sc-for>
+</div>
+
+<div style="display:flex;justify-content:center;padding:22px 22px 44px;background:var(--canvas,#0d0f18)">
+<div style="{{ frameStyle }}">
+
+  <sc-if value="{{ isAuth }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;display:grid;place-items:center;padding:32px 20px;background:var(--bg,#161826)">
+      <div style="width:100%;max-width:340px;animation:rise .4s ease both">
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:34px">
+          <div style="width:11px;height:11px;background:var(--accent,#d98aa4);transform:rotate(45deg);border-radius:1px"></div>
+          <span style="font-weight:500;font-size:16px;letter-spacing:-.01em">Repère</span>
+        </div>
+        <h1 style="margin:0 0 6px;font-size:30px;font-weight:500;line-height:1.1;letter-spacing:-.02em">Bienvenue</h1>
+        <p style="margin:0 0 26px;font-size:14px;color:var(--muted)">Reprends là où tu t'es arrêtée.</p>
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <label style="display:block">
+            <span style="display:block;font-size:12px;margin-bottom:5px;color:var(--muted)">Adresse e-mail</span>
+            <input type="email" value="aylin.b@lycee.fr" style="width:100%;min-height:40px;padding:8px 11px;font-size:14px;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:8px">
+          </label>
+          <label style="display:block">
+            <span style="display:block;font-size:12px;margin-bottom:5px;color:var(--muted)">Mot de passe</span>
+            <input type="password" value="motdepasse" style="width:100%;min-height:40px;padding:8px 11px;font-size:14px;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:8px">
+          </label>
+          <button type="button" onClick="{{ goDashboard }}" style="width:100%;min-height:42px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:500;color:var(--accent);background:var(--accent-soft);border:1px solid var(--accent);border-radius:8px" style-hover="background:var(--accent-soft2)">Se connecter</button>
+          
+          <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-top:2px">
+            <a href="#" style="text-decoration:none">Mot de passe oublié ?</a>
+            <a href="#" style="text-decoration:none;color:var(--muted)">Créer un compte</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isApp }}" hint-placeholder-val="{{ true }}">
+  <div style="flex:1;display:flex;flex-direction:column;min-height:0;background:var(--bg,#161826)">
+
+    <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border)">
+        <div style="width:9px;height:9px;background:var(--accent);transform:rotate(45deg);border-radius:1px"></div>
+        <span style="font-weight:500;font-size:15px;letter-spacing:-.01em;margin-right:auto">Repère</span>
+        <div style="display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border:1px solid var(--border);border-radius:99px;font-size:12px"><i class="ph-fill ph-flame" style="font-size:13px;color:var(--accent)"></i><span style="font-variant-numeric:tabular-nums">{{ streak }}</span></div>
+        <button type="button" onClick="{{ goSettings }}" style="width:32px;height:32px;display:grid;place-items:center;background:transparent;border:none;border-radius:8px;color:var(--muted)" style-hover="background:var(--hover)"><i class="ph ph-sliders-horizontal" style="font-size:17px"></i></button>
+        <div style="width:30px;height:30px;border-radius:99px;background:var(--accent-soft2);border:1px solid var(--accent-line);display:grid;place-items:center;font-size:11.5px;font-weight:500;color:var(--accent)">AB</div>
+      </div>
+    </sc-if>
+
+    <div style="flex:1;display:flex;min-height:0">
+
+      <sc-if value="{{ showSidebar }}" hint-placeholder-val="{{ true }}">
+        <div style="{{ sidebarStyle }}">
+          <div style="display:flex;align-items:center;gap:9px;padding:4px 8px 2px">
+            <div style="width:10px;height:10px;background:var(--accent);transform:rotate(45deg);border-radius:1px"></div>
+            <sc-if value="{{ sidebarWide }}" hint-placeholder-val="{{ true }}"><span style="font-weight:500;font-size:15.5px;letter-spacing:-.01em">Repère</span></sc-if>
+          </div>
+          <button type="button" onClick="{{ goHub }}" style="{{ newReviewBtnStyle }}" style-hover="background:var(--accent-soft2)"><i class="ph ph-play-circle" style="font-size:16px"></i><sc-if value="{{ sidebarWide }}" hint-placeholder-val="{{ true }}"><span>Nouvelle révision</span></sc-if></button>
+          <div style="display:flex;flex-direction:column;gap:2px;margin-top:6px">
+            <sc-for list="{{ navItems }}" as="it" hint-placeholder-count="6">
+              <button type="button" onClick="{{ it.onSelect }}" title="{{ it.label }}" style="{{ it.style }}" style-hover="background:var(--hover)">
+                <i class="{{ it.icon }}" style="font-size:17px;flex:none"></i>
+                <sc-if value="{{ sidebarWide }}" hint-placeholder-val="{{ true }}"><span>{{ it.label }}</span></sc-if>
+                <sc-if value="{{ it.badge }}" hint-placeholder-val="{{ false }}"><span style="margin-left:auto;font-size:11px;font-variant-numeric:tabular-nums;color:var(--accent);background:var(--accent-soft);padding:1px 7px;border-radius:99px">{{ it.badge }}</span></sc-if>
+              </button>
+            </sc-for>
+          </div>
+          <div style="margin-top:auto;padding-top:12px">
+            <div style="height:1px;background:linear-gradient(to right,transparent,var(--border) 24px,var(--border) calc(100% - 24px),transparent);margin-bottom:12px"></div>
+            <button type="button" onClick="{{ goSettings }}" style="width:100%;display:flex;align-items:center;gap:10px;padding:7px 8px;background:transparent;border:none;border-radius:8px;color:var(--text);text-align:left" style-hover="background:var(--hover)">
+              <div style="width:28px;height:28px;flex:none;border-radius:99px;background:var(--accent-soft2);border:1px solid var(--accent-line);display:grid;place-items:center;font-size:11px;font-weight:500;color:var(--accent)">AB</div>
+              <sc-if value="{{ sidebarWide }}" hint-placeholder-val="{{ true }}">
+                <div style="min-width:0">
+                  <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Aylin B.</div>
+                  <div style="font-size:11px;color:var(--faint)">Terminale S</div>
+                </div>
+              </sc-if>
+            </button>
+          </div>
+        </div>
+      </sc-if>
+
+      <div style="{{ mainStyle }}">
+
+        <sc-if value="{{ isDashboard }}" hint-placeholder-val="{{ true }}">
+          <div style="animation:fade .3s ease both">
+            <div style="display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:22px">
+              <div>
+                <h1 style="margin:0 0 4px;font-size:26px;font-weight:500;letter-spacing:-.02em;line-height:1.1">{{ greeting }}</h1>
+                <p style="margin:0;font-size:14.5px;color:var(--muted);text-wrap:pretty">{{ todayLine }}</p>
+              </div>
+              <sc-if value="{{ isDesktop }}" hint-placeholder-val="{{ true }}">
+                <div style="margin-left:auto;display:flex;gap:8px">
+                  <button type="button" onClick="{{ goCreate }}" style="display:inline-flex;align-items:center;gap:7px;padding:8px 13px;font-size:13.5px;color:var(--text);background:transparent;border:1px solid var(--border);border-radius:8px" style-hover="background:var(--hover)"><i class="ph ph-plus" style="font-size:15px"></i>Nouvelle question</button>
+                  <button type="button" onClick="{{ startReview }}" style="display:inline-flex;align-items:center;gap:7px;padding:8px 13px;font-size:13.5px;font-weight:500;color:var(--accent);background:var(--accent-soft);border:1px solid var(--accent);border-radius:8px" style-hover="background:var(--accent-soft2)"><i class="ph ph-play" style="font-size:14px"></i>Réviser</button>
+                </div>
+              </sc-if>
+            </div>
+
+            <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="display:grid;place-items:center;text-align:center;padding:56px 20px;border:1px dashed var(--border2);border-radius:14px">
+                <div style="width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent);margin-bottom:14px"><i class="ph ph-books" style="font-size:22px"></i></div>
+                <h3 style="margin:0 0 6px;font-size:19px;font-weight:500">Tu n'as encore aucune matière</h3>
+                <p style="margin:0 0 18px;font-size:14px;color:var(--muted);max-width:320px;text-wrap:pretty">Crée ta première matière, ajoute quelques questions, et Repère s'occupe du reste : il te les proposera au bon moment.</p>
+                <button type="button" onClick="{{ goSubjects }}" style="display:inline-flex;align-items:center;gap:7px;padding:9px 15px;font-size:14px;font-weight:500;color:var(--accent);background:var(--accent-soft);border:1px solid var(--accent);border-radius:8px" style-hover="background:var(--accent-soft2)"><i class="ph ph-plus" style="font-size:15px"></i>Créer ma première matière</button>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ dashA }}" hint-placeholder-val="{{ true }}">
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(148px,1fr));gap:10px;margin-bottom:22px">
+                <sc-for list="{{ quickStats }}" as="s" hint-placeholder-count="4">
+                  <div style="padding:14px;border:1px solid var(--border);border-radius:12px;background:var(--surface)">
+                    <div style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);margin-bottom:8px"><i class="{{ s.icon }}" style="font-size:14px;color:var(--accent)"></i>{{ s.label }}</div>
+                    <div style="display:flex;align-items:baseline;gap:4px">
+                      <span style="font-size:28px;font-weight:500;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1">{{ s.value }}</span>
+                      <span style="font-size:13px;color:var(--faint)">{{ s.unit }}</span>
+                    </div>
+                    <div style="font-size:11.5px;color:var(--faint);margin-top:6px">{{ s.hint }}</div>
+                  </div>
+                </sc-for>
+              </div>
+
+              <div style="{{ dashGridStyle }}">
+                <div>
+                  <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:11px">
+                    <h2 style="margin:0;font-size:16px;font-weight:500;letter-spacing:-.01em">À réviser aujourd'hui</h2>
+                    <span style="font-size:12px;color:var(--faint);font-variant-numeric:tabular-nums">{{ dueCount }} questions</span>
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:9px">
+                    <sc-for list="{{ dueCards }}" as="d" hint-placeholder-count="3">
+                      <div style="padding:14px;border:1px solid var(--border);border-radius:12px;background:var(--surface);display:flex;flex-direction:column;gap:11px;animation:rise .35s ease both">
+                        <div style="display:flex;align-items:center;gap:10px">
+                          <div style="{{ d.markStyle }}"></div>
+                          <div style="min-width:0;flex:1">
+                            <div style="font-size:14.5px;font-weight:500;letter-spacing:-.01em">{{ d.chapter }}</div>
+                            <div style="font-size:12px;color:var(--muted)">{{ d.subject }} · {{ d.count }} questions</div>
+                          </div>
+                          <span style="{{ d.tagStyle }}">{{ d.diff }}</span>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:12px">
+                          <div style="flex:1;height:5px;border-radius:99px;background:var(--track);overflow:hidden"><div style="{{ d.barStyle }}"></div></div>
+                          <span style="font-size:12px;color:var(--faint);font-variant-numeric:tabular-nums;width:34px;text-align:right">{{ d.pct }}%</span>
+                          <button type="button" onClick="{{ startReview }}" style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;font-size:13px;font-weight:500;color:var(--accent);background:transparent;border:1px solid var(--accent);border-radius:8px;min-height:34px" style-hover="background:var(--accent-soft)">Réviser</button>
+                        </div>
+                      </div>
+                    </sc-for>
+                  </div>
+                  <button type="button" onClick="{{ goSubjects }}" style="margin-top:11px;display:inline-flex;align-items:center;gap:6px;padding:4px 2px;background:transparent;border:none;color:var(--accent);font-size:13px">Voir toutes les matières <i class="ph ph-arrow-right" style="font-size:13px"></i></button>
+                </div>
+
+                <div style="display:flex;flex-direction:column;gap:10px">
+                  <div style="padding:15px;border:1px solid var(--accent-line);border-radius:12px;background:var(--surface)">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+                      <span style="font-size:12.5px;color:var(--muted)">Objectif du jour</span>
+                      <span style="font-size:11px;color:var(--accent);background:var(--accent-soft);padding:2px 8px;border-radius:99px">{{ goalPct }}%</span>
+                    </div>
+                    <div style="display:flex;align-items:baseline;gap:5px;margin-bottom:11px">
+                      <span style="font-size:32px;font-weight:500;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1">{{ goalDone }}</span>
+                      <span style="font-size:15px;color:var(--faint);font-variant-numeric:tabular-nums">/ {{ goalTotal }} min</span>
+                    </div>
+                    <div style="height:7px;border-radius:99px;background:var(--track);overflow:hidden"><div style="{{ goalBarStyle }}"></div></div>
+                    <div style="font-size:11.5px;color:var(--faint);margin-top:9px">{{ goalHint }}</div>
+                  </div>
+
+                  <div style="padding:15px;border:1px solid var(--border);border-radius:12px;background:var(--surface)">
+                    <div style="font-size:12.5px;color:var(--muted);margin-bottom:12px">Temps de travail</div>
+                    <div style="display:flex;align-items:flex-end;gap:5px;height:56px">
+                      <sc-for list="{{ weekBars }}" as="b" hint-placeholder-count="7">
+                        <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end">
+                          <div style="{{ b.style }}"></div>
+                          <span style="{{ b.labelStyle }}">{{ b.day }}</span>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </div>
+
+                  <div style="padding:15px;border:1px solid var(--border);border-radius:12px;background:var(--surface)">
+                    <div style="font-size:12.5px;color:var(--muted);margin-bottom:13px">Progression par matière</div>
+                    <div style="display:flex;flex-direction:column;gap:11px">
+                      <sc-for list="{{ subjectProgress }}" as="p" hint-placeholder-count="4">
+                        <div>
+                          <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+                            <div style="{{ p.dotStyle }}"></div>
+                            <span style="font-size:12.5px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ p.name }}</span>
+                            <span style="font-size:12px;color:var(--faint);font-variant-numeric:tabular-nums">{{ p.pct }}%</span>
+                          </div>
+                          <div style="height:4px;border-radius:99px;background:var(--track);overflow:hidden"><div style="{{ p.barStyle }}"></div></div>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+
+            <sc-if value="{{ dashB }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:22px;border:1px solid var(--accent-line);border-radius:14px;background:var(--surface);position:relative;overflow:hidden;margin-bottom:16px">
+                <div style="{{ glowStyle }}"></div>
+                <div style="position:relative;display:flex;align-items:center;gap:22px;flex-wrap:wrap">
+                  <div style="flex:1;min-width:220px">
+                    <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:9px">Prochaine session</div>
+                    <h2 style="margin:0 0 6px;font-size:24px;font-weight:500;letter-spacing:-.02em">{{ nextSession.title }}</h2>
+                    <p style="margin:0;font-size:14px;color:var(--muted)">{{ nextSession.meta }}</p>
+                  </div>
+                  <button type="button" onClick="{{ startReview }}" style="display:inline-flex;align-items:center;gap:9px;padding:14px 22px;font-size:15px;font-weight:500;color:var(--accent);background:var(--accent-soft);border:1px solid var(--accent);border-radius:10px;min-height:50px" style-hover="background:var(--accent-soft2)"><i class="ph ph-play" style="font-size:16px"></i>Commencer</button>
+                </div>
+                <div style="position:relative;display:flex;flex-wrap:wrap;gap:0;margin-top:22px;padding-top:18px;border-top:1px solid var(--border)">
+                  <sc-for list="{{ quickStats }}" as="s2" hint-placeholder-count="4">
+                    <div style="flex:1;min-width:118px;padding-right:16px">
+                      <div style="display:flex;align-items:baseline;gap:4px">
+                        <span style="font-size:22px;font-weight:500;letter-spacing:-.02em;font-variant-numeric:tabular-nums">{{ s2.value }}</span>
+                        <span style="font-size:12px;color:var(--faint)">{{ s2.unit }}</span>
+                      </div>
+                      <div style="font-size:11.5px;color:var(--muted);margin-top:3px">{{ s2.label }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px">
+                <div style="padding:15px;border:1px solid var(--border);border-radius:12px;background:var(--surface)">
+                  <div style="font-size:12.5px;color:var(--muted);margin-bottom:12px">Aussi à revoir</div>
+                  <div style="display:flex;flex-direction:column;gap:10px">
+                    <sc-for list="{{ dueCards }}" as="d2" hint-placeholder-count="3">
+                      <button type="button" onClick="{{ startReview }}" style="display:flex;align-items:center;gap:10px;padding:0;background:transparent;border:none;color:var(--text);text-align:left;width:100%">
+                        <div style="{{ d2.markStyle }}"></div>
+                        <span style="font-size:13.5px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ d2.chapter }}</span>
+                        <span style="font-size:12px;color:var(--faint);font-variant-numeric:tabular-nums">{{ d2.count }}</span>
+                        <i class="ph ph-arrow-right" style="font-size:13px;color:var(--faint)"></i>
+                      </button>
+                    </sc-for>
+                  </div>
+                </div>
+                <div style="padding:15px;border:1px solid var(--border);border-radius:12px;background:var(--surface)">
+                  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+                    <span style="font-size:12.5px;color:var(--muted)">Objectif du jour</span>
+                    <span style="font-size:12px;color:var(--faint);font-variant-numeric:tabular-nums">{{ goalDone }} / {{ goalTotal }} min</span>
+                  </div>
+                  <div style="height:7px;border-radius:99px;background:var(--track);overflow:hidden;margin-bottom:16px"><div style="{{ goalBarStyle }}"></div></div>
+                  <div style="display:flex;flex-direction:column;gap:9px">
+                    <sc-for list="{{ subjectProgress }}" as="p2" hint-placeholder-count="4">
+                      <div style="display:flex;align-items:center;gap:8px">
+                        <div style="{{ p2.dotStyle }}"></div>
+                        <span style="font-size:12.5px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ p2.name }}</span>
+                        <div style="width:64px;height:4px;border-radius:99px;background:var(--track);overflow:hidden"><div style="{{ p2.barStyle }}"></div></div>
+                        <span style="font-size:12px;color:var(--faint);font-variant-numeric:tabular-nums;width:30px;text-align:right">{{ p2.pct }}%</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isSubjects }}" hint-placeholder-val="{{ false }}">
+          <div style="animation:fade .3s ease both">
+            <div style="display:flex;align-items:flex-end;gap:14px;margin-bottom:20px;flex-wrap:wrap">
+              <div style="flex:1;min-width:180px">
+                <h1 style="margin:0 0 4px;font-size:24px;font-weight:500;letter-spacing:-.02em">Matières</h1>
+                <p style="margin:0;font-size:13.5px;color:var(--muted)">{{ subjectsMeta }}</p>
+              </div>
+              <button type="button" style="display:inline-flex;align-items:center;gap:7px;padding:9px 14px;font-size:13.5px;font-weight:500;color:var(--accent);background:var(--accent-soft);border:1px solid var(--accent);border-radius:8px;min-height:40px" style-hover="background:var(--accent-soft2)"><i class="ph ph-plus" style="font-size:15px"></i>Nouvelle matière</button>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(248px,1fr));gap:11px">
+              <sc-for list="{{ subjects }}" as="s3" hint-placeholder-count="6">
+                <div style="padding:16px;border:1px solid var(--border);border-radius:12px;background:var(--surface);display:flex;flex-direction:column;gap:13px;animation:rise .3s ease both">
+                  <div style="display:flex;align-items:flex-start;gap:11px">
+                    <div style="{{ s3.iconStyle }}"><i class="{{ s3.icon }}" style="font-size:17px"></i></div>
+                    <div style="flex:1;min-width:0">
+                      <div style="font-size:15.5px;font-weight:500;letter-spacing:-.01em">{{ s3.name }}</div>
+                      <div style="font-size:12px;color:var(--muted)">{{ s3.chapters }} chapitres · {{ s3.questions }} questions</div>
+                    </div>
+                    <button type="button" style="width:28px;height:28px;flex:none;display:grid;place-items:center;background:transparent;border:none;border-radius:7px;color:var(--faint)" style-hover="background:var(--hover)"><i class="ph ph-dots-three" style="font-size:16px"></i></button>
+                  </div>
+                  <div>
+                    <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px"><span style="color:var(--muted)">Maîtrise</span><span style="font-variant-numeric:tabular-nums;font-weight:500">{{ s3.mastery }}%</span></div>
+                    <div style="height:5px;border-radius:99px;background:var(--track);overflow:hidden"><div style="{{ s3.barStyle }}"></div></div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:9px;margin-top:auto">
+                    <span style="font-size:11.5px;color:var(--faint);flex:1">{{ s3.last }}</span>
+                    <button type="button" onClick="{{ s3.onOpen }}" style="padding:6px 11px;font-size:12.5px;color:var(--text);background:transparent;border:1px solid var(--border);border-radius:8px;min-height:32px" style-hover="background:var(--hover)">Ouvrir</button>
+                    <button type="button" onClick="{{ startReview }}" style="padding:6px 12px;font-size:12.5px;font-weight:500;color:var(--accent);background:transparent;border:1px solid var(--accent);border-radius:8px;min-height:32px" style-hover="background:var(--accent-soft)">Réviser</button>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isSubject }}" hint-placeholder-val="{{ false }}">
+          <div style="animation:fade .3s ease both">
+            <button type="button" onClick="{{ goSubjects }}" style="display:inline-flex;align-items:center;gap:6px;padding:4px 0;margin-bottom:14px;background:transparent;border:none;color:var(--muted);font-size:12.5px"><i class="ph ph-arrow-left" style="font-size:13px"></i>Matières</button>
+            <div style="display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:20px">
+              <div style="{{ current.iconStyle }}"><i class="{{ current.icon }}" style="font-size:19px"></i></div>
+              <div style="flex:1;min-width:200px">
+                <h1 style="margin:0 0 4px;font-size:25px;font-weight:500;letter-spacing:-.02em">{{ current.name }}</h1>
+                <p style="margin:0;font-size:13.5px;color:var(--muted);text-wrap:pretty">{{ current.desc }}</p>
+              </div>
+              <button type="button" onClick="{{ startReview }}" style="display:inline-flex;align-items:center;gap:7px;padding:9px 14px;font-size:13.5px;font-weight:500;color:var(--accent);background:var(--accent-soft);border:1px solid var(--accent);border-radius:8px;min-height:40px" style-hover="background:var(--accent-soft2)"><i class="ph ph-play" style="font-size:14px"></i>Réviser la matière</button>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:10px;margin-bottom:24px">
+              <sc-for list="{{ subjectStats }}" as="ss" hint-placeholder-count="4">
+                <div style="padding:13px 14px;border:1px solid var(--border);border-radius:12px;background:var(--surface)">
+                  <div style="font-size:11.5px;color:var(--muted);margin-bottom:7px">{{ ss.label }}</div>
+                  <div style="display:flex;align-items:baseline;gap:4px"><span style="font-size:24px;font-weight:500;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1">{{ ss.value }}</span><span style="font-size:12px;color:var(--faint)">{{ ss.unit }}</span></div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:11px">
+              <h2 style="margin:0;font-size:16px;font-weight:500">Chapitres</h2>
+              <span style="font-size:12px;color:var(--faint)">{{ current.chapters }}</span>
+              <button type="button" style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;padding:6px 11px;font-size:12.5px;color:var(--text);background:transparent;border:1px solid var(--border);border-radius:8px" style-hover="background:var(--hover)"><i class="ph ph-plus" style="font-size:13px"></i>Chapitre</button>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:7px">
+              <sc-for list="{{ chapters }}" as="c" hint-placeholder-count="5">
+                <button type="button" onClick="{{ c.onOpen }}" style="display:flex;align-items:center;gap:13px;padding:13px 14px;border:1px solid var(--border);border-radius:11px;background:var(--surface);color:var(--text);text-align:left;width:100%" style-hover="background:var(--hover)">
+                  <div style="flex:1;min-width:0">
+                    <div style="font-size:14.5px;font-weight:500;letter-spacing:-.01em;margin-bottom:3px">{{ c.name }}</div>
+                    <div style="font-size:12px;color:var(--muted)">{{ c.questions }} questions · {{ c.last }}</div>
+                  </div>
+                  <sc-if value="{{ c.due }}" hint-placeholder-val="{{ true }}"><span style="{{ c.dueStyle }}">{{ c.due }} à revoir</span></sc-if>
+                  <div style="width:76px;flex:none">
+                    <div style="height:4px;border-radius:99px;background:var(--track);overflow:hidden"><div style="{{ c.barStyle }}"></div></div>
+                  </div>
+                  <span style="font-size:12.5px;color:var(--faint);font-variant-numeric:tabular-nums;width:34px;text-align:right">{{ c.pct }}%</span>
+                  <i class="ph ph-caret-right" style="font-size:14px;color:var(--faint)"></i>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isChapter }}" hint-placeholder-val="{{ false }}">
+          <div style="animation:fade .3s ease both">
+            <button type="button" onClick="{{ goSubject }}" style="display:inline-flex;align-items:center;gap:6px;padding:4px 0;margin-bottom:14px;background:transparent;border:none;color:var(--muted);font-size:12.5px"><i class="ph ph-arrow-left" style="font-size:13px"></i>{{ current.name }}</button>
+            <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:20px">
+              <div style="flex:1;min-width:180px">
+                <h1 style="margin:0 0 4px;font-size:24px;font-weight:500;letter-spacing:-.02em">{{ chapter.name }}</h1>
+                <p style="margin:0;font-size:13.5px;color:var(--muted)">{{ chapter.questions }} questions · {{ chapter.pct }}% de maîtrise · {{ chapter.last }}</p>
+              </div>
+              <button type="button" onClick="{{ startReview }}" style="display:inline-flex;align-items:center;gap:7px;padding:9px 14px;font-size:13.5px;font-weight:500;color:var(--accent);background:var(--accent-soft);border:1px solid var(--accent);border-radius:8px;min-height:40px" style-hover="background:var(--accent-soft2)"><i class="ph ph-play" style="font-size:14px"></i>Réviser ce chapitre</button>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+              <sc-for list="{{ retentionGroups }}" as="rg" hint-placeholder-count="3">
+                <div style="{{ rg.style }}">
+                  <span style="{{ rg.dotStyle }}"></span>
+                  <span style="font-size:12.5px">{{ rg.label }}</span>
+                  <span style="font-size:12.5px;font-weight:500;font-variant-numeric:tabular-nums">{{ rg.count }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="border:1px solid var(--border);border-radius:12px;overflow:hidden">
+              <sc-for list="{{ chapterQuestions }}" as="q" hint-placeholder-count="6">
+                <div style="{{ q.rowStyle }}">
+                  <span style="{{ q.dotStyle }}"></span>
+                  <div style="flex:1;min-width:0">
+                    <div style="font-size:13.5px;margin-bottom:2px">{{ q.q }}</div>
+                    <div style="font-size:11.5px;color:var(--faint)">{{ q.state }}</div>
+                  </div>
+                  <span style="{{ q.tagStyle }}">{{ q.diff }}</span>
+                  <button type="button" style="width:28px;height:28px;flex:none;display:grid;place-items:center;background:transparent;border:none;border-radius:7px;color:var(--faint)" style-hover="background:var(--hover)"><i class="ph ph-pencil-simple" style="font-size:14px"></i></button>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isCreate }}" hint-placeholder-val="{{ false }}">
+          <div style="animation:fade .3s ease both">
+            <h1 style="margin:0 0 4px;font-size:24px;font-weight:500;letter-spacing:-.02em">Nouvelle question</h1>
+            <p style="margin:0 0 22px;font-size:13.5px;color:var(--muted)">Cinq champs, puis on enchaîne. Le formulaire reste ouvert pour la suivante.</p>
+            <div style="{{ createGridStyle }}">
+              <div style="display:flex;flex-direction:column;gap:15px">
+                <label style="display:block">
+                  <span style="display:block;font-size:12px;margin-bottom:6px;color:var(--muted)">Question</span>
+                  <textarea value="{{ form.q }}" onChange="{{ onFormQ }}" placeholder="En quelle année commence la Première Guerre mondiale ?" style="width:100%;min-height:88px;padding:11px 12px;font-size:15px;line-height:1.5;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:10px;resize:vertical"></textarea>
+                </label>
+                <label style="display:block">
+                  <span style="display:block;font-size:12px;margin-bottom:6px;color:var(--muted)">Réponse</span>
+                  <textarea value="{{ form.a }}" onChange="{{ onFormA }}" placeholder="1914" style="width:100%;min-height:70px;padding:11px 12px;font-size:15px;line-height:1.5;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:10px;resize:vertical"></textarea>
+                </label>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px">
+                  <label style="display:block">
+                    <span style="display:block;font-size:12px;margin-bottom:6px;color:var(--muted)">Matière</span>
+                    <select value="{{ form.subject }}" onChange="{{ onFormSubject }}" style="width:100%;min-height:40px;padding:8px 11px;font-size:14px;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:9px">
+                      <sc-for list="{{ subjectNames }}" as="sn" hint-placeholder-count="6"><option value="{{ sn }}">{{ sn }}</option></sc-for>
+                    </select>
+                  </label>
+                  <label style="display:block">
+                    <span style="display:block;font-size:12px;margin-bottom:6px;color:var(--muted)">Chapitre</span>
+                    <select value="{{ form.chapter }}" onChange="{{ onFormChapter }}" style="width:100%;min-height:40px;padding:8px 11px;font-size:14px;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:9px">
+                      <sc-for list="{{ formChapters }}" as="cn" hint-placeholder-count="5"><option value="{{ cn }}">{{ cn }}</option></sc-for>
+                    </select>
+                  </label>
+                </div>
+                <div>
+                  <span style="display:block;font-size:12px;margin-bottom:6px;color:var(--muted)">Difficulté</span>
+                  <div style="display:inline-flex;border:1px solid var(--border);border-radius:9px;overflow:hidden">
+                    <sc-for list="{{ diffOpts }}" as="dopt" hint-placeholder-count="3">
+                      <button type="button" onClick="{{ dopt.onSelect }}" style="{{ dopt.style }}">{{ dopt.label }}</button>
+                    </sc-for>
+                  </div>
+                </div>
+                <div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:4px">
+                  <button type="button" onClick="{{ submitQuestion }}" style="display:inline-flex;align-items:center;gap:8px;padding:11px 17px;font-size:14px;font-weight:500;color:var(--accent);background:var(--accent-soft);border:1px solid var(--accent);border-radius:9px;min-height:44px" style-hover="background:var(--accent-soft2)"><i class="ph ph-check" style="font-size:15px"></i>Créer la question</button>
+                  <button type="button" onClick="{{ submitQuestion }}" style="display:inline-flex;align-items:center;gap:8px;padding:11px 17px;font-size:14px;color:var(--text);background:transparent;border:1px solid var(--border);border-radius:9px;min-height:44px" style-hover="background:var(--hover)">Créer et enchaîner</button>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <div style="padding:15px;border:1px solid var(--border);border-radius:12px;background:var(--surface)">
+                  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+                    <span style="font-size:12.5px;color:var(--muted)">Ajoutées à l'instant</span>
+                    <span style="font-size:12px;color:var(--accent);background:var(--accent-soft);padding:2px 8px;border-radius:99px;font-variant-numeric:tabular-nums">{{ createdCount }}</span>
+                  </div>
+                  <sc-if value="{{ hasCreated }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;flex-direction:column;gap:9px">
+                      <sc-for list="{{ created }}" as="cq" hint-placeholder-count="2">
+                        <div style="padding:10px 11px;border:1px solid var(--border);border-radius:9px;background:var(--surface2);animation:rise .3s ease both">
+                          <div style="font-size:13px;margin-bottom:3px">{{ cq.q }}</div>
+                          <div style="font-size:11.5px;color:var(--faint)">{{ cq.meta }}</div>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ noCreated }}" hint-placeholder-val="{{ true }}">
+                    <p style="margin:0;font-size:12.5px;color:var(--faint);text-wrap:pretty">Rien pour l'instant. Les questions créées s'empilent ici pour que tu puisses relire ta série sans quitter l'écran.</p>
+                  </sc-if>
+                </div>
+                <div style="padding:15px;border:1px dashed var(--border2);border-radius:12px">
+                  <div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);margin-bottom:7px"><i class="ph ph-sparkle" style="font-size:14px;color:var(--accent)"></i>Plus tard</div>
+                  <p style="margin:0;font-size:12.5px;color:var(--faint);text-wrap:pretty">Importer un cours en PDF et laisser Repère proposer 20 questions. L'emplacement est prévu ; l'app fonctionne entièrement sans.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isHub }}" hint-placeholder-val="{{ false }}">
+          <div style="animation:fade .3s ease both">
+            <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:20px">
+              <div style="flex:1;min-width:200px">
+                <h1 style="margin:0 0 4px;font-size:24px;font-weight:500;letter-spacing:-.02em">Révisions</h1>
+                <p style="margin:0;font-size:13.5px;color:var(--muted);text-wrap:pretty">Choisis les chapitres à revoir, ou ajoute tes propres questions dans la catégorie que tu veux.</p>
+              </div>
+            </div>
+
+            <div style="{{ hubGridStyle }}">
+              <div>
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px;border:1px solid var(--accent-line);border-radius:12px;background:var(--surface);margin-bottom:12px">
+                  <div style="flex:1;min-width:150px">
+                    <div style="font-size:13.5px;font-weight:500">{{ selQuestions }} questions dans la session</div>
+                    <div style="font-size:11.5px;color:var(--faint);text-wrap:pretty">{{ hubHint }}</div>
+                  </div>
+                  <sc-if value="{{ hasSel }}" hint-placeholder-val="{{ false }}">
+                    <button type="button" onClick="{{ clearSel }}" style="padding:7px 11px;font-size:12.5px;color:var(--text);background:transparent;border:1px solid var(--border);border-radius:8px;min-height:36px" style-hover="background:var(--hover)">Vider ({{ selCount }})</button>
+                  </sc-if>
+                  <button type="button" onClick="{{ startReview }}" style="display:inline-flex;align-items:center;gap:8px;padding:9px 15px;font-size:13.5px;font-weight:500;color:var(--accent);background:var(--accent-soft);border:1px solid var(--accent);border-radius:9px;min-height:40px" style-hover="background:var(--accent-soft2)"><i class="ph ph-play" style="font-size:14px"></i>Commencer</button>
+                </div>
+
+                <div style="display:flex;flex-direction:column;gap:9px">
+                  <sc-for list="{{ hubSubjects }}" as="hs" hint-placeholder-count="6">
+                    <div style="{{ hs.cardStyle }}">
+                      <div style="display:flex;align-items:center">
+                        <button type="button" onClick="{{ hs.onToggleOpen }}" style="{{ hs.headerStyle }}">
+                          <div style="{{ hs.iconStyle }}"><i class="{{ hs.icon }}" style="font-size:16px"></i></div>
+                          <div style="flex:1;min-width:0">
+                            <div style="font-size:14.5px;font-weight:500;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ hs.name }}</div>
+                            <div style="font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ hs.meta }}</div>
+                          </div>
+                          <i class="{{ hs.caret }}" style="font-size:14px;color:var(--faint);flex:none"></i>
+                        </button>
+                        <button type="button" onClick="{{ hs.onSelectAll }}" style="flex:none;margin-right:12px;padding:5px 10px;font-size:11.5px;white-space:nowrap;color:var(--muted);background:transparent;border:1px solid var(--border);border-radius:7px;min-height:30px" style-hover="background:var(--hover)">{{ hs.allLabel }}</button>
+                      </div>
+                      <sc-if value="{{ hs.open }}" hint-placeholder-val="{{ true }}">
+                        <div>
+                          <sc-for list="{{ hs.chapters }}" as="hc" hint-placeholder-count="4">
+                            <button type="button" onClick="{{ hc.onToggle }}" style="{{ hc.rowStyle }}">
+                              <span style="{{ hc.boxStyle }}"><sc-if value="{{ hc.checked }}" hint-placeholder-val="{{ false }}"><i class="ph-fill ph-check" style="font-size:11px"></i></sc-if></span>
+                              <span style="flex:1;min-width:0">
+                                <span style="display:block;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ hc.name }}</span>
+                                <span style="display:block;font-size:11.5px;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ hc.meta }}</span>
+                              </span>
+                              <span style="{{ hc.dueStyle }}">{{ hc.dueLabel }}</span>
+                              <span style="flex:none;font-size:12px;color:var(--faint);font-variant-numeric:tabular-nums;white-space:nowrap">{{ hc.pct }}%</span>
+                            </button>
+                          </sc-for>
+                        </div>
+                      </sc-if>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+
+              <div style="display:flex;flex-direction:column;gap:10px">
+                <div style="padding:16px;border:1px solid var(--border);border-radius:12px;background:var(--surface)">
+                  <div style="font-size:14px;font-weight:500;margin-bottom:3px">Ajouter une question</div>
+                  <div style="font-size:11.5px;color:var(--faint);margin-bottom:15px">Dans n'importe quelle matière — ou dans un nouveau chapitre.</div>
+                  <div style="display:flex;flex-direction:column;gap:13px">
+                    <div style="display:grid;grid-template-columns:1fr;gap:13px">
+                      <label style="display:block">
+                        <span style="display:block;font-size:12px;margin-bottom:6px;color:var(--muted)">Matière</span>
+                        <select value="{{ form.subject }}" onChange="{{ onFormSubject }}" style="width:100%;min-height:40px;padding:8px 11px;font-size:14px;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:9px">
+                          <sc-for list="{{ subjectNames }}" as="hsn" hint-placeholder-count="6"><option value="{{ hsn }}">{{ hsn }}</option></sc-for>
+                        </select>
+                      </label>
+                      <label style="display:block">
+                        <span style="display:block;font-size:12px;margin-bottom:6px;color:var(--muted)">Chapitre</span>
+                        <select value="{{ form.chapter }}" onChange="{{ onFormChapter }}" style="width:100%;min-height:40px;padding:8px 11px;font-size:14px;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:9px">
+                          <sc-for list="{{ formChapters }}" as="hcn" hint-placeholder-count="5"><option value="{{ hcn }}">{{ hcn }}</option></sc-for>
+                          <option value="__new">+ Nouveau chapitre…</option>
+                        </select>
+                      </label>
+                      <sc-if value="{{ isNewChapter }}" hint-placeholder-val="{{ false }}">
+                        <label style="display:block;animation:rise .25s ease both">
+                          <span style="display:block;font-size:12px;margin-bottom:6px;color:var(--muted)">Nom du nouveau chapitre</span>
+                          <input value="{{ newChapter }}" onChange="{{ onNewChapter }}" placeholder="Géométrie dans l'espace" style="width:100%;min-height:40px;padding:8px 11px;font-size:14px;color:var(--text);background:var(--surface2);border:1px solid var(--accent-line);border-radius:9px">
+                        </label>
+                      </sc-if>
+                    </div>
+                    <label style="display:block">
+                      <span style="display:block;font-size:12px;margin-bottom:6px;color:var(--muted)">Question</span>
+                      <textarea value="{{ form.q }}" onChange="{{ onFormQ }}" placeholder="En quelle année commence la Première Guerre mondiale ?" style="width:100%;min-height:74px;padding:11px 12px;font-size:14.5px;line-height:1.5;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:10px;resize:vertical"></textarea>
+                    </label>
+                    <label style="display:block">
+                      <span style="display:block;font-size:12px;margin-bottom:6px;color:var(--muted)">Réponse</span>
+                      <textarea value="{{ form.a }}" onChange="{{ onFormA }}" placeholder="1914" style="width:100%;min-height:58px;padding:11px 12px;font-size:14.5px;line-height:1.5;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:10px;resize:vertical"></textarea>
+                    </label>
+                    <div>
+                      <span style="display:block;font-size:12px;margin-bottom:6px;color:var(--muted)">Difficulté</span>
+                      <div style="display:inline-flex;border:1px solid var(--border);border-radius:9px;overflow:hidden">
+                        <sc-for list="{{ diffOpts }}" as="hdo" hint-placeholder-count="3">
+                          <button type="button" onClick="{{ hdo.onSelect }}" style="{{ hdo.style }}">{{ hdo.label }}</button>
+                        </sc-for>
+                      </div>
+                    </div>
+                    <button type="button" onClick="{{ submitQuestion }}" style="width:100%;min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:500;color:var(--accent);background:var(--accent-soft);border:1px solid var(--accent);border-radius:9px" style-hover="background:var(--accent-soft2)"><i class="ph ph-plus" style="font-size:15px"></i>Ajouter la question</button>
+                  </div>
+                </div>
+                <sc-if value="{{ hasCreated }}" hint-placeholder-val="{{ false }}">
+                  <div style="padding:15px;border:1px solid var(--border);border-radius:12px;background:var(--surface)">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+                      <span style="font-size:12.5px;color:var(--muted)">Ajoutées à l'instant</span>
+                      <span style="font-size:12px;color:var(--accent);background:var(--accent-soft);padding:2px 8px;border-radius:99px;font-variant-numeric:tabular-nums">{{ createdCount }}</span>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:9px">
+                      <sc-for list="{{ created }}" as="hcq" hint-placeholder-count="2">
+                        <div style="padding:10px 11px;border:1px solid var(--border);border-radius:9px;background:var(--surface2);animation:rise .3s ease both">
+                          <div style="font-size:13px;margin-bottom:3px">{{ hcq.q }}</div>
+                          <div style="font-size:11.5px;color:var(--faint)">{{ hcq.meta }}</div>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </div>
+                </sc-if>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isPomodoro }}" hint-placeholder-val="{{ false }}">
+          <div style="animation:fade .3s ease both;display:flex;flex-direction:column;align-items:center">
+            <div style="width:100%;max-width:520px">
+              <div style="display:flex;justify-content:center;gap:0;margin-bottom:26px">
+                <div style="display:inline-flex;border:1px solid var(--border);border-radius:9px;overflow:hidden">
+                  <sc-for list="{{ pomoModes }}" as="pm" hint-placeholder-count="2">
+                    <button type="button" onClick="{{ pm.onSelect }}" style="{{ pm.style }}">{{ pm.label }}</button>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="position:relative;display:grid;place-items:center;margin:0 auto 26px;width:252px;height:252px">
+                <svg viewBox="0 0 252 252" style="position:absolute;inset:0;transform:rotate(-90deg)">
+                  <circle cx="126" cy="126" r="114" fill="none" stroke="var(--track)" stroke-width="9"></circle>
+                  <circle cx="126" cy="126" r="114" fill="none" stroke="var(--accent)" stroke-width="9" stroke-linecap="round" stroke-dasharray="716" stroke-dashoffset="{{ pomoOffset }}" style="transition:stroke-dashoffset .9s linear"></circle>
+                </svg>
+                <div style="text-align:center">
+                  <div style="font-size:52px;font-weight:500;letter-spacing:-.04em;font-variant-numeric:tabular-nums;line-height:1">{{ pomoClock }}</div>
+                  <div style="font-size:12.5px;color:var(--muted);margin-top:7px">{{ pomoLabel }}</div>
+                </div>
+              </div>
+              <div style="display:flex;justify-content:center;gap:9px;margin-bottom:26px">
+                <button type="button" onClick="{{ togglePomo }}" style="display:inline-flex;align-items:center;gap:9px;padding:12px 24px;font-size:14.5px;font-weight:500;color:var(--accent);background:var(--accent-soft);border:1px solid var(--accent);border-radius:10px;min-height:48px" style-hover="background:var(--accent-soft2)"><i class="{{ pomoIcon }}" style="font-size:16px"></i>{{ pomoAction }}</button>
+                <button type="button" onClick="{{ resetPomo }}" style="width:48px;height:48px;display:grid;place-items:center;color:var(--text);background:transparent;border:1px solid var(--border);border-radius:10px" style-hover="background:var(--hover)"><i class="ph ph-arrow-counter-clockwise" style="font-size:17px"></i></button>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:11px;margin-bottom:11px">
+                <label style="display:block">
+                  <span style="display:block;font-size:12px;margin-bottom:6px;color:var(--muted)">Matière</span>
+                  <select value="{{ form.subject }}" onChange="{{ onFormSubject }}" style="width:100%;min-height:40px;padding:8px 11px;font-size:14px;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:9px">
+                    <sc-for list="{{ subjectNames }}" as="sn2" hint-placeholder-count="6"><option value="{{ sn2 }}">{{ sn2 }}</option></sc-for>
+                  </select>
+                </label>
+                <label style="display:block">
+                  <span style="display:block;font-size:12px;margin-bottom:6px;color:var(--muted)">Chapitre</span>
+                  <select value="{{ form.chapter }}" onChange="{{ onFormChapter }}" style="width:100%;min-height:40px;padding:8px 11px;font-size:14px;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:9px">
+                    <sc-for list="{{ formChapters }}" as="cn2" hint-placeholder-count="5"><option value="{{ cn2 }}">{{ cn2 }}</option></sc-for>
+                  </select>
+                </label>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin-bottom:11px">
+                <sc-for list="{{ pomoStats }}" as="ps" hint-placeholder-count="3">
+                  <div style="padding:12px 13px;border:1px solid var(--border);border-radius:11px;background:var(--surface);text-align:center">
+                    <div style="font-size:21px;font-weight:500;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1">{{ ps.value }}</div>
+                    <div style="font-size:11.5px;color:var(--muted);margin-top:5px">{{ ps.label }}</div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="padding:13px 15px;border:1px solid var(--border);border-radius:11px;background:var(--surface);display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+                <span style="font-size:12.5px;color:var(--muted);margin-right:auto">Travail 25 · Pause 5 · Longue pause 15 · 4 sessions</span>
+                <button type="button" onClick="{{ goSettings }}" style="display:inline-flex;align-items:center;gap:6px;padding:5px 10px;font-size:12.5px;color:var(--text);background:transparent;border:1px solid var(--border);border-radius:8px" style-hover="background:var(--hover)"><i class="ph ph-sliders-horizontal" style="font-size:13px"></i>Régler</button>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isStats }}" hint-placeholder-val="{{ false }}">
+          <div style="animation:fade .3s ease both">
+            <h1 style="margin:0 0 4px;font-size:24px;font-weight:500;letter-spacing:-.02em">Statistiques</h1>
+            <p style="margin:0 0 20px;font-size:13.5px;color:var(--muted)">Quatre questions, quatre graphiques. Rien de décoratif.</p>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px">
+              <sc-for list="{{ statKpis }}" as="k" hint-placeholder-count="4">
+                <div style="padding:14px;border:1px solid var(--border);border-radius:12px;background:var(--surface)">
+                  <div style="font-size:11.5px;color:var(--muted);margin-bottom:8px">{{ k.label }}</div>
+                  <div style="display:flex;align-items:baseline;gap:4px"><span style="font-size:26px;font-weight:500;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1">{{ k.value }}</span><span style="font-size:12px;color:var(--faint)">{{ k.unit }}</span></div>
+                  <div style="{{ k.deltaStyle }}">{{ k.delta }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(288px,1fr));gap:11px">
+              <div style="padding:16px;border:1px solid var(--border);border-radius:12px;background:var(--surface)">
+                <div style="font-size:13.5px;font-weight:500;margin-bottom:2px">Est-ce que je progresse ?</div>
+                <div style="font-size:11.5px;color:var(--faint);margin-bottom:16px">Taux de réussite, 8 dernières semaines</div>
+                <svg viewBox="0 0 300 90" preserveAspectRatio="none" style="width:100%;height:90px;overflow:visible">
+                  <polyline points="{{ trendPoints }}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></polyline>
+                </svg>
+                <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--faint);margin-top:8px"><span>S-8</span><span>Aujourd'hui</span></div>
+              </div>
+              <div style="padding:16px;border:1px solid var(--border);border-radius:12px;background:var(--surface)">
+                <div style="font-size:13.5px;font-weight:500;margin-bottom:2px">Combien de temps cette semaine ?</div>
+                <div style="font-size:11.5px;color:var(--faint);margin-bottom:16px">Minutes travaillées par jour</div>
+                <div style="display:flex;align-items:flex-end;gap:7px;height:90px">
+                  <sc-for list="{{ weekBars }}" as="wb" hint-placeholder-count="7">
+                    <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;height:100%;justify-content:flex-end">
+                      <span style="font-size:10.5px;color:var(--faint);font-variant-numeric:tabular-nums">{{ wb.mins }}</span>
+                      <div style="{{ wb.style }}"></div>
+                      <span style="{{ wb.labelStyle }}">{{ wb.day }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="padding:16px;border:1px solid var(--border);border-radius:12px;background:var(--surface)">
+                <div style="font-size:13.5px;font-weight:500;margin-bottom:2px">Quelle matière travailler ?</div>
+                <div style="font-size:11.5px;color:var(--faint);margin-bottom:16px">Maîtrise croisée avec le temps passé</div>
+                <div style="display:flex;flex-direction:column;gap:12px">
+                  <sc-for list="{{ subjectProgress }}" as="p3" hint-placeholder-count="5">
+                    <div>
+                      <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
+                        <div style="{{ p3.dotStyle }}"></div>
+                        <span style="font-size:12.5px;flex:1">{{ p3.name }}</span>
+                        <span style="font-size:11.5px;color:var(--faint)">{{ p3.time }}</span>
+                        <span style="font-size:12px;font-variant-numeric:tabular-nums;width:32px;text-align:right">{{ p3.pct }}%</span>
+                      </div>
+                      <div style="height:4px;border-radius:99px;background:var(--track);overflow:hidden"><div style="{{ p3.barStyle }}"></div></div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+              <div style="padding:16px;border:1px solid var(--border);border-radius:12px;background:var(--surface)">
+                <div style="font-size:13.5px;font-weight:500;margin-bottom:2px">Où en est ma régularité ?</div>
+                <div style="font-size:11.5px;color:var(--faint);margin-bottom:16px">Dix dernières semaines · {{ streak }} jours d'affilée</div>
+                <div style="display:grid;grid-template-columns:repeat(10,1fr);gap:4px">
+                  <sc-for list="{{ heat }}" as="h" hint-placeholder-count="70">
+                    <div style="{{ h.style }}"></div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+          <div style="animation:fade .3s ease both;max-width:640px">
+            <h1 style="margin:0 0 20px;font-size:24px;font-weight:500;letter-spacing:-.02em">Paramètres</h1>
+            <div style="margin-bottom:26px">
+              <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:11px">Compte</div>
+              <div style="padding:16px;border:1px solid var(--border);border-radius:12px;background:var(--surface);display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+                <div style="width:44px;height:44px;border-radius:99px;background:var(--accent-soft2);border:1px solid var(--accent-line);display:grid;place-items:center;font-size:15px;font-weight:500;color:var(--accent)">AB</div>
+                <div style="flex:1;min-width:150px">
+                  <div style="font-size:14.5px;font-weight:500">Aylin B.</div>
+                  <div style="font-size:12.5px;color:var(--muted)">aylin.b@lycee.fr</div>
+                </div>
+                <button type="button" style="padding:7px 12px;font-size:12.5px;color:var(--text);background:transparent;border:1px solid var(--border);border-radius:8px;min-height:36px" style-hover="background:var(--hover)">Modifier</button>
+                <button type="button" style="padding:7px 12px;font-size:12.5px;color:var(--text);background:transparent;border:1px solid var(--border);border-radius:8px;min-height:36px" style-hover="background:var(--hover)">Mot de passe</button>
+              </div>
+            </div>
+            <div style="margin-bottom:26px">
+              <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:11px">Apparence</div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:10px">
+                <sc-for list="{{ themeCards }}" as="tc" hint-placeholder-count="3">
+                  <button type="button" onClick="{{ tc.onSelect }}" style="{{ tc.style }}">
+                    <div style="{{ tc.swatchStyle }}">
+                      <div style="{{ tc.chipStyle }}"></div>
+                      <div style="{{ tc.lineStyle }}"></div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:7px">
+                      <span style="font-size:13.5px;font-weight:500">{{ tc.label }}</span>
+                      <sc-if value="{{ tc.active }}" hint-placeholder-val="{{ false }}"><i class="ph-fill ph-check-circle" style="font-size:15px;color:var(--accent)"></i></sc-if>
+                    </div>
+                  </button>
+                </sc-for>
+              </div>
+              <div style="padding:13px 15px;border:1px solid var(--border);border-radius:11px;background:var(--surface);display:flex;align-items:center;gap:12px">
+                <span style="font-size:13.5px;flex:1">Suivre les préférences du système</span>
+                <div style="width:38px;height:22px;border-radius:99px;background:var(--track);border:1px solid var(--border);position:relative"><div style="position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:99px;background:var(--faint)"></div></div>
+              </div>
+            </div>
+            <div style="margin-bottom:26px">
+              <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:11px">Préférences</div>
+              <div style="border:1px solid var(--border);border-radius:12px;background:var(--surface);overflow:hidden">
+                <sc-for list="{{ prefs }}" as="pr" hint-placeholder-count="4">
+                  <div style="{{ pr.rowStyle }}">
+                    <div style="flex:1;min-width:0">
+                      <div style="font-size:13.5px">{{ pr.label }}</div>
+                      <div style="font-size:11.5px;color:var(--faint)">{{ pr.hint }}</div>
+                    </div>
+                    <button type="button" onClick="{{ pr.onToggle }}" style="{{ pr.trackStyle }}"><span style="{{ pr.knobStyle }}"></span></button>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:11px">Données</div>
+              <div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:12px">
+                <button type="button" style="display:inline-flex;align-items:center;gap:7px;padding:9px 13px;font-size:13px;color:var(--text);background:transparent;border:1px solid var(--border);border-radius:8px;min-height:40px" style-hover="background:var(--hover)"><i class="ph ph-export" style="font-size:15px"></i>Exporter mes données</button>
+                <button type="button" style="display:inline-flex;align-items:center;gap:7px;padding:9px 13px;font-size:13px;color:var(--text);background:transparent;border:1px solid var(--border);border-radius:8px;min-height:40px" style-hover="background:var(--hover)"><i class="ph ph-tray-arrow-down" style="font-size:15px"></i>Importer</button>
+              </div>
+              <div style="padding:14px 15px;border:1px solid var(--err-line);border-radius:11px;display:flex;align-items:center;gap:13px;flex-wrap:wrap">
+                <div style="flex:1;min-width:170px">
+                  <div style="font-size:13.5px;color:var(--err)">Supprimer mon compte</div>
+                  <div style="font-size:11.5px;color:var(--faint)">Définitif. Tes matières, questions et statistiques seront effacées.</div>
+                </div>
+                <button type="button" style="padding:8px 13px;font-size:13px;color:var(--err);background:transparent;border:1px solid var(--err-line);border-radius:8px;min-height:38px" style-hover="background:var(--err-soft)">Supprimer</button>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+      </div>
+    </div>
+
+    <sc-if value="{{ isMobile }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;align-items:stretch;gap:2px;padding:7px 8px 9px;border-top:1px solid var(--border);background:var(--surface2)">
+        <sc-for list="{{ tabItems }}" as="tb" hint-placeholder-count="5">
+          <button type="button" onClick="{{ tb.onSelect }}" style="{{ tb.style }}">
+            <i class="{{ tb.icon }}" style="font-size:19px"></i>
+            <span style="font-size:10.5px;letter-spacing:.01em">{{ tb.label }}</span>
+          </button>
+        </sc-for>
+      </div>
+    </sc-if>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ isReview }}" hint-placeholder-val="{{ false }}">
+    <div style="{{ reviewShellStyle }}">
+      <div style="{{ glowStyle }}"></div>
+      <div style="position:relative;display:flex;align-items:center;gap:13px;padding:14px 18px">
+        <button type="button" onClick="{{ quitReview }}" style="width:34px;height:34px;flex:none;display:grid;place-items:center;background:transparent;border:none;border-radius:8px;color:var(--muted)" style-hover="background:var(--hover)"><i class="ph ph-x" style="font-size:17px"></i></button>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ card.subject }} · {{ card.chapter }}</div>
+          <div style="font-size:11.5px;color:var(--faint);font-variant-numeric:tabular-nums">{{ revPos }} sur {{ revTotal }} · {{ revLeft }} restantes</div>
+        </div>
+        <span style="{{ card.tagStyle }}">{{ card.diff }}</span>
+      </div>
+      <div style="position:relative;height:3px;background:var(--track);margin:0 18px;border-radius:99px;overflow:hidden"><div style="{{ revBarStyle }}"></div></div>
+
+      <div style="{{ reviewBodyStyle }}">
+        <div style="{{ cardStyle }}">
+          <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:16px">Question</div>
+          <div style="{{ questionStyle }}">{{ card.q }}</div>
+          <sc-if value="{{ revealed }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:24px;animation:rise .28s ease both">
+              <div style="height:1px;background:linear-gradient(to right,transparent,var(--border2) 40px,var(--border2) calc(100% - 40px),transparent);margin-bottom:20px"></div>
+              <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:12px">Réponse</div>
+              <div style="{{ answerStyle }}">{{ card.a }}</div>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+
+      <div style="position:relative;padding:0 18px 20px">
+        <sc-if value="{{ notRevealed }}" hint-placeholder-val="{{ true }}">
+          <div>
+            <button type="button" onClick="{{ reveal }}" style="width:100%;min-height:54px;display:inline-flex;align-items:center;justify-content:center;gap:9px;font-size:15.5px;font-weight:500;color:var(--accent);background:var(--accent-soft);border:1px solid var(--accent);border-radius:12px" style-hover="background:var(--accent-soft2)"><i class="ph ph-eye" style="font-size:17px"></i>Afficher la réponse</button>
+            <div style="text-align:center;font-size:11.5px;color:var(--faint);margin-top:11px">Barre d'espace pour révéler</div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ revealed }}" hint-placeholder-val="{{ false }}">
+          <div style="animation:rise .28s ease both">
+            <div style="{{ ratingRowStyle }}">
+              <sc-for list="{{ ratings }}" as="r" hint-placeholder-count="3">
+                <button type="button" onClick="{{ r.onSelect }}" style="{{ r.style }}" style-hover="background:var(--hover)">
+                  <i class="{{ r.icon }}" style="{{ r.iconStyle }}"></i>
+                  <span style="{{ r.labelStyle }}">{{ r.label }}</span>
+                  <span style="font-size:11px;color:var(--faint)">{{ r.next }}</span>
+                </button>
+              </sc-for>
+            </div>
+            <div style="text-align:center;font-size:11.5px;color:var(--faint);margin-top:11px">Touches 1 · 2 · 3</div>
+          </div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isSummary }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;display:grid;place-items:center;padding:32px 20px;background:var(--bg,#161826);position:relative;overflow:hidden">
+      <div style="{{ glowStyle }}"></div>
+      <div style="position:relative;width:100%;max-width:400px;animation:rise .4s ease both">
+        <h1 style="margin:0 0 6px;font-size:28px;font-weight:500;letter-spacing:-.02em">Session terminée 🎉</h1>
+        <p style="margin:0 0 24px;font-size:14px;color:var(--muted)">{{ summaryLine }}</p>
+        <div style="border:1px solid var(--border);border-radius:13px;background:var(--surface);overflow:hidden;margin-bottom:14px">
+          <sc-for list="{{ summaryRows }}" as="sr" hint-placeholder-count="3">
+            <div style="{{ sr.rowStyle }}">
+              <span style="{{ sr.dotStyle }}"></span>
+              <span style="font-size:13.5px;flex:1">{{ sr.label }}</span>
+              <span style="font-size:15px;font-weight:500;font-variant-numeric:tabular-nums">{{ sr.value }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px">
+          <div style="padding:14px;border:1px solid var(--border);border-radius:12px;background:var(--surface)">
+            <div style="font-size:11.5px;color:var(--muted);margin-bottom:7px">Temps</div>
+            <div style="display:flex;align-items:baseline;gap:4px"><span style="font-size:24px;font-weight:500;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1">18</span><span style="font-size:12px;color:var(--faint)">min</span></div>
+          </div>
+          <div style="padding:14px;border:1px solid var(--accent-line);border-radius:12px;background:var(--surface)">
+            <div style="font-size:11.5px;color:var(--muted);margin-bottom:7px">Progression</div>
+            <div style="display:flex;align-items:baseline;gap:4px"><span style="font-size:24px;font-weight:500;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1;color:var(--accent)">+4</span><span style="font-size:12px;color:var(--faint)">%</span></div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:9px">
+          <button type="button" onClick="{{ startReview }}" style="width:100%;min-height:48px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14.5px;font-weight:500;color:var(--accent);background:var(--accent-soft);border:1px solid var(--accent);border-radius:10px" style-hover="background:var(--accent-soft2)">Continuer avec 12 autres</button>
+          <button type="button" onClick="{{ goDashboard }}" style="width:100%;min-height:48px;display:inline-flex;align-items:center;justify-content:center;gap:8px;font-size:14.5px;color:var(--text);background:transparent;border:1px solid var(--border);border-radius:10px" style-hover="background:var(--hover)">Retour au tableau de bord</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ toast }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:50%;bottom:22px;transform:translateX(-50%);display:flex;align-items:center;gap:9px;padding:10px 15px;border-radius:10px;background:var(--surface);border:1px solid var(--accent-line);box-shadow:var(--shadow);font-size:13.5px;animation:rise .25s ease both;z-index:30">
+      <i class="ph-fill ph-check-circle" style="font-size:16px;color:var(--accent)"></i>{{ toast }}
+    </div>
+  </sc-if>
+
+</div>
+</div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;primaryAccent&quot;:{&quot;editor&quot;:&quot;color&quot;,&quot;default&quot;:&quot;#d98aa4&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;#d98aa4&quot;,&quot;#b5abfc&quot;,&quot;#e0b070&quot;,&quot;#7fc6b4&quot;],&quot;section&quot;:&quot;Identité&quot;}}">
+class Component extends DCLogic {
+  LIB = {
+    'Mathématiques': [
+      { name: 'Fonctions', q: 32, pct: 84, due: 0, last: 'Révisé hier' },
+      { name: 'Dérivées', q: 28, pct: 62, due: 9, last: 'Révisé il y a 4 jours' },
+      { name: 'Probabilités', q: 24, pct: 71, due: 5, last: 'Révisé il y a 2 jours' },
+      { name: 'Suites', q: 21, pct: 45, due: 11, last: 'Révisé il y a 9 jours' },
+      { name: 'Intégrales', q: 19, pct: 38, due: 7, last: 'Jamais révisé' },
+      { name: 'Nombres complexes', q: 16, pct: 91, due: 0, last: 'Révisé ce matin' }
+    ],
+    'Histoire-Géographie': [
+      { name: 'La Grande Guerre', q: 26, pct: 64, due: 7, last: 'Il y a 3 jours' },
+      { name: 'La Guerre froide', q: 22, pct: 58, due: 4, last: 'Il y a 6 jours' },
+      { name: 'Mondialisation', q: 18, pct: 70, due: 0, last: 'Il y a 2 jours' },
+      { name: 'La Ve République', q: 14, pct: 52, due: 5, last: 'Jamais révisé' }
+    ],
+    'Physique-Chimie': [
+      { name: 'Ondes et signaux', q: 30, pct: 76, due: 3, last: 'Ce matin' },
+      { name: 'Énergie', q: 24, pct: 68, due: 6, last: 'Il y a 4 jours' },
+      { name: 'Réactions acido-basiques', q: 21, pct: 61, due: 8, last: 'Il y a 5 jours' },
+      { name: 'Mouvement et forces', q: 18, pct: 82, due: 0, last: 'Hier' }
+    ],
+    'Anglais': [
+      { name: 'Irregular verbs', q: 34, pct: 92, due: 0, last: 'Il y a 2 jours' },
+      { name: 'Vocabulaire — environnement', q: 26, pct: 88, due: 2, last: 'Il y a 3 jours' },
+      { name: 'Expressions idiomatiques', q: 19, pct: 84, due: 3, last: 'La semaine dernière' }
+    ],
+    'Philosophie': [
+      { name: 'La liberté', q: 22, pct: 41, due: 8, last: 'Il y a 8 jours' },
+      { name: 'La vérité', q: 17, pct: 46, due: 5, last: 'Il y a 11 jours' },
+      { name: 'Citations et auteurs', q: 15, pct: 38, due: 6, last: 'Jamais révisé' }
+    ],
+    'SES': [
+      { name: 'Marchés et prix', q: 24, pct: 60, due: 4, last: 'Il y a 5 jours' },
+      { name: 'Socialisation', q: 20, pct: 55, due: 3, last: 'Il y a 7 jours' },
+      { name: 'Chômage et emploi', q: 18, pct: 49, due: 5, last: 'Il y a 9 jours' }
+    ]
+  };
+
+  state = {
+    lib: this.LIB, sel: {}, openSubj: 'Mathématiques', newChapter: '',
+    theme: 'dark', viewport: 'desktop', route: 'dashboard', dash: 'A', rev: 'focus',
+    dataset: 'full', subjectId: 0, chapterId: 1, revIdx: 0, revealed: false,
+    tally: { ok: 8, hard: 3, bad: 1 }, running: false, left: 1500, mode: 'work', done: 2,
+    form: { q: '', a: '', subject: 'Mathématiques', chapter: 'Dérivées', diff: 'Moyen' },
+    created: [], toast: null, prefs: { notif: true, sons: false, anim: true, revoir: true }
+  };
+
+  ACCENTS = {
+    '#d98aa4': { dark: '#d98aa4', light: '#b0446a' },
+    '#b5abfc': { dark: '#b5abfc', light: '#6153b8' },
+    '#e0b070': { dark: '#e0b070', light: '#8d5f18' },
+    '#7fc6b4': { dark: '#7fc6b4', light: '#2c7365' }
+  };
+
+  THEMES = {
+    dark: { canvas: '#0d0f18', bg: '#161826', surface: '#1e2030', surface2: '#1a1c29', text: '#e9e9ed', muted: 'rgba(233,233,237,.58)', faint: 'rgba(233,233,237,.40)', border: 'rgba(233,233,237,.12)', border2: 'rgba(233,233,237,.22)', track: 'rgba(233,233,237,.10)', hover: 'rgba(233,233,237,.06)', shadow: '0 10px 32px rgba(0,0,0,.5)', ok: '#8ac7a6', warn: '#e0bb7a', err: '#e08a8a' },
+    light: { canvas: '#e6e4e4', bg: '#fbfafa', surface: '#ffffff', surface2: '#f4f3f4', text: '#1b1a1c', muted: 'rgba(27,26,28,.60)', faint: 'rgba(27,26,28,.42)', border: 'rgba(27,26,28,.11)', border2: 'rgba(27,26,28,.20)', track: 'rgba(27,26,28,.08)', hover: 'rgba(27,26,28,.05)', shadow: '0 8px 26px rgba(20,18,20,.10)', ok: '#2f7a5b', warn: '#8a6420', err: '#a34141' },
+    rose: { canvas: '#e6dcdf', bg: '#fdfafb', surface: '#ffffff', surface2: '#faf3f5', text: '#211a1d', muted: 'rgba(33,26,29,.60)', faint: 'rgba(33,26,29,.42)', border: 'rgba(120,60,80,.13)', border2: 'rgba(120,60,80,.24)', track: 'rgba(120,60,80,.11)', hover: 'rgba(120,60,80,.06)', shadow: '0 8px 26px rgba(90,40,60,.11)', ok: '#2f7a5b', warn: '#8a6420', err: '#a34141' }
+  };
+
+  SUBJECTS = [
+    { name: 'Mathématiques', icon: 'ph ph-function', hue: 352, chapters: 12, questions: 184, mastery: 78, last: 'Révisé hier', desc: 'Terminale spécialité · analyse, probabilités, géométrie', time: '4 h 20' },
+    { name: 'Histoire-Géographie', icon: 'ph ph-scroll', hue: 42, chapters: 8, questions: 96, mastery: 64, last: 'Il y a 3 jours', desc: 'Repères chronologiques et études de cas', time: '2 h 05' },
+    { name: 'Physique-Chimie', icon: 'ph ph-atom', hue: 210, chapters: 10, questions: 142, mastery: 71, last: 'Révisé aujourd\u2019hui', desc: 'Ondes, énergie, réactions', time: '3 h 10' },
+    { name: 'Anglais', icon: 'ph ph-translate', hue: 158, chapters: 6, questions: 88, mastery: 89, last: 'Il y a 2 jours', desc: 'Vocabulaire thématique et irrégularités', time: '1 h 40' },
+    { name: 'Philosophie', icon: 'ph ph-brain', hue: 288, chapters: 5, questions: 54, mastery: 41, last: 'Il y a 8 jours', desc: 'Notions, auteurs, citations', time: '0 h 45' },
+    { name: 'SES', icon: 'ph ph-chart-line-up', hue: 26, chapters: 7, questions: 73, mastery: 55, last: 'Il y a 5 jours', desc: 'Mécanismes économiques et sociologie', time: '1 h 15' }
+  ];
+
+  CHAPTERS = [
+    { name: 'Fonctions', questions: 32, pct: 84, due: 0, last: 'Révisé hier' },
+    { name: 'Dérivées', questions: 28, pct: 62, due: 9, last: 'Révisé il y a 4 jours' },
+    { name: 'Probabilités', questions: 24, pct: 71, due: 5, last: 'Révisé il y a 2 jours' },
+    { name: 'Suites', questions: 21, pct: 45, due: 11, last: 'Révisé il y a 9 jours' },
+    { name: 'Intégrales', questions: 19, pct: 38, due: 7, last: 'Jamais révisé' },
+    { name: 'Nombres complexes', questions: 16, pct: 91, due: 0, last: 'Révisé ce matin' }
+  ];
+
+  QUEUE = [
+    { q: 'Quelle est la dérivée de ln(x) sur ]0 ; +∞[ ?', a: '1 / x', subject: 'Mathématiques', chapter: 'Dérivées', diff: 'Moyen' },
+    { q: 'Énonce la formule de la dérivée d\u2019un produit u·v.', a: 'u\u2032v + uv\u2032', subject: 'Mathématiques', chapter: 'Dérivées', diff: 'Facile' },
+    { q: 'Quelle condition sur f\u2032 caractérise une fonction croissante sur un intervalle ?', a: 'f\u2032(x) ⩾ 0 sur tout l\u2019intervalle.', subject: 'Mathématiques', chapter: 'Dérivées', diff: 'Moyen' },
+    { q: 'Quelle est la dérivée de e^(2x) ?', a: '2·e^(2x) — dérivée d\u2019une composée : u\u2032·e^u.', subject: 'Mathématiques', chapter: 'Dérivées', diff: 'Difficile' },
+    { q: 'Que vaut la dérivée de √x, et sur quel domaine ?', a: '1 / (2√x), sur ]0 ; +∞[.', subject: 'Mathématiques', chapter: 'Dérivées', diff: 'Moyen' },
+    { q: 'Comment reconnaître un point d\u2019inflexion sur la courbe de f ?', a: 'La dérivée seconde change de signe : la concavité s\u2019inverse.', subject: 'Mathématiques', chapter: 'Dérivées', diff: 'Difficile' }
+  ];
+
+  componentDidMount() {
+    this._t = setInterval(() => {
+      if (!this.state.running) return;
+      this.setState(s => (s.left <= 1 ? { running: false, left: 0 } : { left: s.left - 1 }));
+    }, 1000);
+    this._k = e => {
+      if (this.state.route !== 'review') return;
+      if (e.code === 'Space') { e.preventDefault(); if (!this.state.revealed) this.setState({ revealed: true }); }
+      if (this.state.revealed && ['1', '2', '3'].includes(e.key)) this.rate(['bad', 'hard', 'ok'][+e.key - 1]);
+    };
+    window.addEventListener('keydown', this._k);
+  }
+  componentWillUnmount() { clearInterval(this._t); window.removeEventListener('keydown', this._k); }
+
+  acc() {
+    const key = this.ACCENTS[this.props.primaryAccent] ? this.props.primaryAccent : '#d98aa4';
+    return this.ACCENTS[key][this.state.theme === 'dark' ? 'dark' : 'light'];
+  }
+  hue(h, strong) {
+    const dark = this.state.theme === 'dark';
+    return `oklch(${dark ? (strong ? 0.74 : 0.70) : (strong ? 0.56 : 0.52)} ${dark ? 0.085 : 0.105} ${h})`;
+  }
+  toast(msg) { this.setState({ toast: msg }); clearTimeout(this._to); this._to = setTimeout(() => this.setState({ toast: null }), 2400); }
+  go(route) { this.setState({ route, revealed: false }); }
+  rate(kind) {
+    const last = this.state.revIdx >= this.QUEUE.length - 1;
+    this.setState(s => ({
+      tally: { ...s.tally, [kind]: s.tally[kind] + 1 },
+      revIdx: last ? 0 : s.revIdx + 1, revealed: false, route: last ? 'summary' : 'review'
+    }));
+  }
+
+  addQuestion() {
+    const f = this.state.form;
+    const target = f.chapter === '__new' ? this.state.newChapter.trim() : f.chapter;
+    if (!f.q.trim()) { this.toast('Écris d\u2019abord la question.'); return; }
+    if (!target) { this.toast('Donne un nom au nouveau chapitre.'); return; }
+    this.setState(st => {
+      const list = (st.lib[f.subject] || []).slice();
+      const i = list.findIndex(c => c.name === target);
+      if (i === -1) list.push({ name: target, q: 1, pct: 0, due: 1, last: 'Créé à l\u2019instant' });
+      else list[i] = { ...list[i], q: list[i].q + 1, due: list[i].due + 1 };
+      return {
+        lib: { ...st.lib, [f.subject]: list },
+        created: [{ q: f.q, meta: `${f.subject} · ${target} · ${f.diff}` }, ...st.created].slice(0, 6),
+        form: { ...st.form, q: '', a: '', chapter: target }, newChapter: ''
+      };
+    });
+    this.toast('Question ajoutée à ' + target);
+  }
+
+  seg(active) {
+    return {
+      padding: '5px 10px', fontSize: '11.5px', border: 'none', background: active ? 'rgba(217,138,164,.16)' : 'transparent',
+      color: active ? '#e6a6ba' : 'rgba(233,233,237,.62)', fontWeight: active ? 500 : 400
+    };
+  }
+  pill(active, a) {
+    return {
+      padding: '8px 15px', fontSize: '13px', border: 'none', minHeight: '38px',
+      background: active ? 'var(--accent-soft)' : 'transparent', color: active ? a : 'var(--muted)', fontWeight: active ? 500 : 400
+    };
+  }
+
+  renderVals() {
+    const s = this.state, T = this.THEMES[s.theme], a = this.acc();
+    const isMobile = s.viewport === 'mobile', isTablet = s.viewport === 'tablet';
+    const full = s.dataset === 'full';
+    const soft = `color-mix(in srgb, ${a} 13%, transparent)`;
+    const soft2 = `color-mix(in srgb, ${a} 22%, transparent)`;
+    const line = `color-mix(in srgb, ${a} 45%, transparent)`;
+
+    const vars = {
+      '--canvas': T.canvas, '--bg': T.bg, '--surface': T.surface, '--surface2': T.surface2,
+      '--text': T.text, '--muted': T.muted, '--faint': T.faint, '--border': T.border,
+      '--border2': T.border2, '--track': T.track, '--hover': T.hover, '--shadow': T.shadow,
+      '--accent': a, '--accent-hi': a, '--accent-soft': soft, '--accent-soft2': soft2, '--accent-line': line,
+      '--err': T.err, '--err-line': `color-mix(in srgb, ${T.err} 40%, transparent)`, '--err-soft': `color-mix(in srgb, ${T.err} 12%, transparent)`
+    };
+
+    const tag = (kind) => {
+      const c = kind === 'Difficile' ? T.err : kind === 'Facile' ? T.ok : T.warn;
+      return { display: 'inline-flex', alignItems: 'center', flex: 'none', fontSize: '11px', padding: '2px 9px', borderRadius: '6px', color: c, border: `1px solid color-mix(in srgb, ${c} 38%, transparent)` };
+    };
+    const bar = (pct, color) => ({ width: pct + '%', height: '100%', borderRadius: '99px', background: color || a, transition: 'width .5s cubic-bezier(.4,0,.2,1)' });
+    const dot = (color, size) => ({ width: (size || 7) + 'px', height: (size || 7) + 'px', flex: 'none', borderRadius: '2px', transform: 'rotate(45deg)', background: color });
+
+    const chromeOpt = (label, active, onSelect) => ({ label, onSelect, style: this.seg(active) });
+    const chromeGroups = [
+      { label: 'Thème', opts: [['Light', 'light'], ['Dark', 'dark'], ['Rose', 'rose']].map(([l, v]) => chromeOpt(l, s.theme === v, () => this.setState({ theme: v }))) },
+      { label: 'Écran', opts: [['375', 'mobile'], ['768', 'tablet'], ['1440', 'desktop']].map(([l, v]) => chromeOpt(l, s.viewport === v, () => this.setState({ viewport: v }))) },
+      { label: 'Dashboard', opts: [['A · dense', 'A'], ['B · focus', 'B']].map(([l, v]) => chromeOpt(l, s.dash === v, () => this.setState({ dash: v, route: 'dashboard' }))) },
+      { label: 'Révision', opts: [['Carte', 'classic'], ['Immersif', 'focus']].map(([l, v]) => chromeOpt(l, s.rev === v, () => this.setState({ rev: v }))) },
+      { label: 'Données', opts: [['Remplies', 'full'], ['Compte neuf', 'new']].map(([l, v]) => chromeOpt(l, s.dataset === v, () => this.setState({ dataset: v }))) },
+      { label: 'Écrans', opts: [['App', 'dashboard'], ['Connexion', 'login']].map(([l, v]) => chromeOpt(l, (v === 'login') === (s.route === 'login'), () => this.go(v))) }
+    ];
+
+    const navDefs = [
+      ['dashboard', 'Tableau de bord', 'ph ph-house'], ['subjects', 'Matières', 'ph ph-books'],
+      ['review', 'Révisions', 'ph ph-cards-three'], ['pomodoro', 'Pomodoro', 'ph ph-timer'],
+      ['stats', 'Statistiques', 'ph ph-chart-bar'], ['settings', 'Paramètres', 'ph ph-sliders-horizontal']
+    ];
+    const navItems = navDefs.map(([id, label, icon]) => {
+      const active = s.route === id || (id === 'subjects' && ['subject', 'chapter'].includes(s.route)) || (id === 'review' && ['reviewhub', 'summary', 'create'].includes(s.route));
+      return {
+        label, icon, badge: id === 'review' && full ? 24 : null,
+        onSelect: () => this.go(id === 'review' ? 'reviewhub' : id),
+        style: {
+          width: '100%', display: 'flex', alignItems: 'center', gap: '10px', padding: isTablet ? '9px' : '8px 9px',
+          justifyContent: isTablet ? 'center' : 'flex-start', background: active ? soft : 'transparent',
+          border: 'none', borderRadius: '8px', color: active ? a : T.text, fontSize: '13.5px',
+          fontWeight: active ? 500 : 400, textAlign: 'left', minHeight: '38px'
+        }
+      };
+    });
+
+    const tabDefs = [
+      ['dashboard', 'Accueil', 'ph ph-house'], ['subjects', 'Matières', 'ph ph-books'],
+      ['review', 'Réviser', 'ph ph-cards-three'], ['pomodoro', 'Pomodoro', 'ph ph-timer'], ['stats', 'Stats', 'ph ph-chart-bar']
+    ];
+    const tabItems = tabDefs.map(([id, label, icon]) => {
+      const active = s.route === id || (id === 'subjects' && ['subject', 'chapter'].includes(s.route)) || (id === 'review' && s.route === 'reviewhub');
+      const mid = id === 'review';
+      return {
+        label, icon, onSelect: () => this.go(mid ? 'reviewhub' : id),
+        style: {
+          flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px',
+          minHeight: '52px', padding: '6px 2px', borderRadius: '10px', border: mid ? `1px solid ${line}` : 'none',
+          background: mid ? soft : active ? soft : 'transparent', color: mid || active ? a : T.muted, fontWeight: active || mid ? 500 : 400
+        }
+      };
+    });
+
+    const lib = s.lib;
+    const libSubjects = this.SUBJECTS.map(x => {
+      const ch = lib[x.name] || [];
+      return { ...x, ch, chapters: ch.length, questions: ch.reduce((t, c) => t + c.q, 0), dueTotal: ch.reduce((t, c) => t + c.due, 0) };
+    });
+    const subj = libSubjects[s.subjectId] || libSubjects[0];
+    const chapter = subj.ch[Math.min(s.chapterId, subj.ch.length - 1)] || subj.ch[0];
+    const subjects = (full ? libSubjects : []).map((x, i) => ({
+      ...x,
+      barStyle: bar(x.mastery, this.hue(x.hue)),
+      iconStyle: { width: '34px', height: '34px', flex: 'none', display: 'grid', placeItems: 'center', borderRadius: '9px', color: this.hue(x.hue, true), background: `color-mix(in srgb, ${this.hue(x.hue)} 14%, transparent)`, border: `1px solid color-mix(in srgb, ${this.hue(x.hue)} 30%, transparent)` },
+      onOpen: () => this.setState({ subjectId: i, route: 'subject' })
+    }));
+
+    const dueSrc = [
+      { subject: 'Mathématiques', chapter: 'Dérivées', count: 9, diff: 'Moyen', pct: 62, hue: 352 },
+      { subject: 'Philosophie', chapter: 'La liberté', count: 8, diff: 'Difficile', pct: 41, hue: 288 },
+      { subject: 'Histoire-Géo', chapter: 'La Grande Guerre', count: 7, diff: 'Facile', pct: 64, hue: 42 }
+    ];
+    const dueCards = (full ? dueSrc : []).map(d => ({
+      ...d, tagStyle: tag(d.diff), barStyle: bar(d.pct, this.hue(d.hue)), markStyle: { width: '30px', height: '30px', flex: 'none', borderRadius: '8px', background: `color-mix(in srgb, ${this.hue(d.hue)} 18%, transparent)`, border: `1px solid color-mix(in srgb, ${this.hue(d.hue)} 34%, transparent)` }
+    }));
+
+    const mins = [45, 60, 30, 75, 50, 0, 72];
+    const weekBars = ['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((day, i) => ({
+      day, mins: mins[i],
+      style: { width: '100%', maxWidth: '18px', height: Math.max(3, Math.round((mins[i] / 80) * 100)) + '%', borderRadius: '4px', background: i === 6 ? a : `color-mix(in srgb, ${T.text} 16%, transparent)`, transition: 'height .5s ease' },
+      labelStyle: { fontSize: '10.5px', color: i === 6 ? a : T.faint }
+    }));
+
+    const subjectProgress = (full ? this.SUBJECTS : []).slice(0, 5).map(x => ({
+      name: x.name, pct: x.mastery, time: x.time, barStyle: bar(x.mastery, this.hue(x.hue)), dotStyle: dot(this.hue(x.hue))
+    }));
+
+    const chapters = subj.ch.map((c, i) => ({
+      ...c, questions: c.q, pct: c.pct, barStyle: bar(c.pct, this.hue(subj.hue)),
+      dueStyle: { display: 'inline-flex', flex: 'none', fontSize: '11px', padding: '2px 9px', borderRadius: '6px', color: a, background: soft },
+      onOpen: () => this.setState({ chapterId: i, route: 'chapter' })
+    }));
+
+    const cq = [
+      { q: 'Quelle est la dérivée de ln(x) ?', state: 'À revoir dans 1 jour', diff: 'Moyen', k: 'weak' },
+      { q: 'Dérivée d\u2019un produit u·v', state: 'Bien maîtrisé · revoir dans 12 jours', diff: 'Facile', k: 'ok' },
+      { q: 'Condition de croissance sur un intervalle', state: 'À revoir aujourd\u2019hui', diff: 'Moyen', k: 'due' },
+      { q: 'Dérivée de e^(2x)', state: 'À renforcer · 3 erreurs', diff: 'Difficile', k: 'weak' },
+      { q: 'Dérivée de √x et son domaine', state: 'Bien maîtrisé · revoir dans 8 jours', diff: 'Moyen', k: 'ok' },
+      { q: 'Reconnaître un point d\u2019inflexion', state: 'À revoir aujourd\u2019hui', diff: 'Difficile', k: 'due' }
+    ];
+    const kcolor = { ok: T.ok, due: a, weak: T.warn };
+    const chapterQuestions = cq.map((q, i) => ({
+      ...q, tagStyle: tag(q.diff), dotStyle: dot(kcolor[q.k], 8),
+      rowStyle: { display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 14px', background: T.surface, borderTop: i ? `1px solid ${T.border}` : 'none' }
+    }));
+
+    const retentionGroups = [
+      ['À revoir aujourd\u2019hui', 12, a], ['Bien maîtrisé', 9, T.ok], ['À renforcer', 7, T.warn]
+    ].map(([label, count, c]) => ({
+      label, count, dotStyle: dot(c, 8),
+      style: { display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '7px 12px', borderRadius: '9px', border: `1px solid ${T.border}`, background: T.surface }
+    }));
+
+    const card = this.QUEUE[s.revIdx];
+    const revealed = s.revealed, immersive = s.rev === 'focus';
+    const qSize = isMobile ? (immersive ? 27 : 22) : immersive ? 38 : 29;
+
+    const ratings = [
+      ['bad', 'Je me suis trompé', 'ph ph-x-circle', T.err, 'revu dans 10 min'],
+      ['hard', 'J\u2019ai eu du mal', 'ph ph-minus-circle', T.warn, 'revu demain'],
+      ['ok', 'Je maîtrise', 'ph ph-check-circle', T.ok, 'revu dans 6 jours']
+    ].map(([k, label, icon, c, next]) => ({
+      label, icon, next, onSelect: () => this.rate(k),
+      iconStyle: `font-size:${immersive ? 22 : 19}px;color:${c}`,
+      labelStyle: { fontSize: immersive ? '15px' : '13.5px', fontWeight: 500, flex: immersive ? 1 : 'none', textAlign: immersive ? 'left' : 'center' },
+      style: {
+        display: 'flex', alignItems: 'center', gap: immersive ? '12px' : '7px',
+        flexDirection: immersive ? 'row' : 'column', justifyContent: 'center',
+        width: '100%', minHeight: immersive ? '62px' : '76px', padding: immersive ? '0 18px' : '12px 10px',
+        borderRadius: '12px', border: `1px solid color-mix(in srgb, ${c} 34%, transparent)`,
+        background: 'transparent', color: T.text, textAlign: 'center'
+      }
+    }));
+
+    const goalDone = full ? 72 : 0, goalTotal = 100;
+    const trend = [48, 52, 51, 58, 63, 61, 69, 74];
+    const trendPoints = trend.map((v, i) => `${(i / (trend.length - 1)) * 300},${90 - ((v - 40) / 40) * 80}`).join(' ');
+    const heat = Array.from({ length: 70 }, (_, i) => {
+      const v = full ? [0, 0.25, 0.5, 0.75, 1][(i * 7 + (i % 5) * 3) % 5] : 0;
+      return { style: { aspectRatio: '1', borderRadius: '3px', background: v ? `color-mix(in srgb, ${a} ${Math.round(v * 80)}%, transparent)` : T.track } };
+    });
+
+    const prefs = [
+      ['notif', 'Notifications', 'Un rappel quotidien à 18 h 30'],
+      ['sons', 'Sons', 'Retour sonore en fin de session'],
+      ['anim', 'Animations', 'Suit aussi la préférence système'],
+      ['revoir', 'Mélanger les matières', 'Une session peut croiser plusieurs matières']
+    ].map(([k, label, hint], i) => {
+      const on = s.prefs[k];
+      return {
+        label, hint, onToggle: () => this.setState(st => ({ prefs: { ...st.prefs, [k]: !st.prefs[k] } })),
+        rowStyle: { display: 'flex', alignItems: 'center', gap: '13px', padding: '13px 15px', borderTop: i ? `1px solid ${T.border}` : 'none' },
+        trackStyle: { width: '40px', height: '23px', flex: 'none', borderRadius: '99px', border: `1px solid ${on ? line : T.border2}`, background: on ? soft : T.track, position: 'relative', padding: 0 },
+        knobStyle: { position: 'absolute', top: '3px', left: on ? '20px' : '3px', width: '15px', height: '15px', borderRadius: '99px', background: on ? a : T.faint, transition: 'left .18s ease' }
+      };
+    });
+
+    const themeCards = [['light', 'Light'], ['dark', 'Dark'], ['rose', 'Rose']].map(([v, label]) => {
+      const th = this.THEMES[v], ac = this.ACCENTS[this.ACCENTS[this.props.primaryAccent] ? this.props.primaryAccent : '#d98aa4'][v === 'dark' ? 'dark' : 'light'];
+      const active = s.theme === v;
+      return {
+        label, active, onSelect: () => this.setState({ theme: v }),
+        style: { display: 'flex', flexDirection: 'column', gap: '10px', padding: '12px', borderRadius: '12px', background: T.surface, border: `1px solid ${active ? line : T.border}`, color: T.text, textAlign: 'left' },
+        swatchStyle: { height: '54px', borderRadius: '8px', background: th.bg, border: `1px solid ${th.border2}`, padding: '9px', display: 'flex', flexDirection: 'column', gap: '6px', justifyContent: 'flex-end' },
+        chipStyle: { width: '38%', height: '7px', borderRadius: '99px', background: ac },
+        lineStyle: { width: '68%', height: '7px', borderRadius: '99px', background: th.track }
+      };
+    });
+
+    const glowStyle = { position: 'absolute', top: '-30%', left: '50%', transform: 'translateX(-50%)', width: '540px', height: '340px', borderRadius: '50%', background: `radial-gradient(closest-side, color-mix(in srgb, ${a} 16%, transparent), transparent)`, pointerEvents: 'none' };
+
+    return {
+      rootStyle: { ...vars, minHeight: '100vh', background: 'var(--canvas)', color: T.text, fontFamily: 'Inter, system-ui, sans-serif', fontSize: '15px', lineHeight: 1.55 },
+      frameStyle: {
+        width: isMobile ? '390px' : isTablet ? '834px' : '1320px', maxWidth: '100%', minHeight: '860px',
+        display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden',
+        background: T.bg, borderRadius: '16px', border: `1px solid ${T.border2}`, boxShadow: T.shadow
+      },
+      chromeGroups, navItems, tabItems,
+      isMobile, isDesktop: !isMobile, showSidebar: !isMobile, sidebarWide: !isTablet,
+      sidebarStyle: {
+        width: isTablet ? '62px' : '234px', flex: 'none', display: 'flex', flexDirection: 'column', gap: '5px',
+        padding: '16px 12px', borderRight: `1px solid ${T.border}`, background: T.surface2
+      },
+      goHub: () => this.go('reviewhub'),
+      newReviewBtnStyle: {
+        width: '100%', display: 'inline-flex', alignItems: 'center', justifyContent: isTablet ? 'center' : 'flex-start',
+        gap: '9px', marginTop: '14px', padding: '9px 10px', minHeight: '40px', fontSize: '13.5px', fontWeight: 500,
+        color: a, background: soft, border: `1px solid ${a}`, borderRadius: '9px'
+      },
+      mainStyle: { flex: 1, minWidth: 0, padding: isMobile ? '18px 16px 26px' : '26px 30px 40px', overflow: 'auto' },
+      dashGridStyle: { display: 'grid', gridTemplateColumns: isMobile || isTablet ? '1fr' : '1.55fr 1fr', gap: '14px', alignItems: 'start' },
+      createGridStyle: { display: 'grid', gridTemplateColumns: isMobile || isTablet ? '1fr' : '1.3fr 1fr', gap: '18px', alignItems: 'start' },
+      hubGridStyle: { display: 'grid', gridTemplateColumns: isMobile || isTablet ? 'minmax(0, 1fr)' : 'minmax(0, 1.4fr) minmax(0, 1fr)', gap: '16px', alignItems: 'start' },
+
+      isAuth: s.route === 'login',
+      isApp: !['login', 'review', 'summary'].includes(s.route),
+      isDashboard: s.route === 'dashboard', isSubjects: s.route === 'subjects', isSubject: s.route === 'subject',
+      isChapter: s.route === 'chapter', isCreate: s.route === 'create', isPomodoro: s.route === 'pomodoro',
+      isStats: s.route === 'stats', isSettings: s.route === 'settings',
+      isReview: s.route === 'review', isSummary: s.route === 'summary',
+      isEmpty: !full && s.route === 'dashboard',
+      dashA: full && s.dash === 'A', dashB: full && s.dash === 'B',
+
+      greeting: 'Bonjour Aylin 👋',
+      todayLine: full ? 'Tu as 24 questions à revoir aujourd\u2019hui, surtout en dérivées.' : 'Commence par créer une matière — deux minutes suffisent.',
+      streak: full ? 12 : 0,
+      quickStats: [
+        { label: 'À revoir', value: full ? 24 : 0, unit: 'questions', hint: full ? '3 chapitres concernés' : 'Rien pour l\u2019instant', icon: 'ph ph-cards-three' },
+        { label: 'Taux de réussite', value: full ? 74 : 0, unit: '%', hint: full ? '+6 pts sur 7 jours' : '—', icon: 'ph ph-target' },
+        { label: 'Étudié aujourd\u2019hui', value: full ? 72 : 0, unit: 'min', hint: full ? 'Objectif 100 min' : 'Objectif 100 min', icon: 'ph ph-clock' },
+        { label: 'Série', value: full ? 12 : 0, unit: 'jours', hint: full ? 'Meilleure série : 19' : 'À démarrer', icon: 'ph ph-flame' }
+      ],
+      dueCount: full ? 24 : 0, dueCards,
+      nextSession: { title: 'Mathématiques · Dérivées', meta: '9 questions à revoir · environ 6 minutes · maîtrise 62 %' },
+      goalDone, goalTotal, goalPct: Math.round((goalDone / goalTotal) * 100),
+      goalBarStyle: bar((goalDone / goalTotal) * 100),
+      goalHint: full ? 'Encore 28 minutes — une session Pomodoro suffit.' : 'Aucune minute enregistrée aujourd\u2019hui.',
+      weekBars, subjectProgress, glowStyle,
+
+      subjects, subjectsMeta: full ? '6 matières · 637 questions · 71 % de maîtrise moyenne' : 'Aucune matière pour l\u2019instant',
+      current: { ...subj, iconStyle: { width: '40px', height: '40px', flex: 'none', display: 'grid', placeItems: 'center', borderRadius: '10px', color: this.hue(subj.hue, true), background: `color-mix(in srgb, ${this.hue(subj.hue)} 14%, transparent)`, border: `1px solid color-mix(in srgb, ${this.hue(subj.hue)} 30%, transparent)` }, chapters: subj.chapters + ' chapitres' },
+      subjectStats: [
+        { label: 'Maîtrise', value: subj.mastery, unit: '%' },
+        { label: 'Questions', value: subj.questions, unit: '' },
+        { label: 'À revoir', value: 21, unit: 'aujourd\u2019hui' },
+        { label: 'Temps total', value: subj.time.split(' ')[0], unit: 'h ' + subj.time.split(' ')[2] }
+      ],
+      chapters, chapter: { ...chapter, questions: chapter.q }, chapterQuestions, retentionGroups,
+
+      isHub: s.route === 'reviewhub',
+      hubSubjects: libSubjects.map(x => {
+        const open = s.openSubj === x.name;
+        const keys = x.ch.map(c => x.name + '§' + c.name);
+        const allSel = keys.length > 0 && keys.every(k => s.sel[k]);
+        return {
+          name: x.name, icon: x.icon, open,
+          meta: `${x.chapters} chapitres · ${x.questions} questions · ${x.dueTotal} à revoir`,
+          caret: open ? 'ph ph-caret-up' : 'ph ph-caret-down',
+          allLabel: allSel ? 'Aucun' : 'Tout',
+          onToggleOpen: () => this.setState({ openSubj: open ? null : x.name }),
+          onSelectAll: () => this.setState(st => {
+            const nx = { ...st.sel }; keys.forEach(k => { if (allSel) delete nx[k]; else nx[k] = true; }); return { sel: nx };
+          }),
+          headerStyle: { flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: '11px', padding: '13px 14px', background: 'transparent', border: 'none', color: T.text, textAlign: 'left' },
+          iconStyle: { width: '32px', height: '32px', flex: 'none', display: 'grid', placeItems: 'center', borderRadius: '9px', color: this.hue(x.hue, true), background: `color-mix(in srgb, ${this.hue(x.hue)} 14%, transparent)`, border: `1px solid color-mix(in srgb, ${this.hue(x.hue)} 30%, transparent)` },
+          cardStyle: { border: `1px solid ${open ? line : T.border}`, borderRadius: '12px', background: T.surface, overflow: 'hidden' },
+          chapters: x.ch.map(c => {
+            const k = x.name + '§' + c.name, on = !!s.sel[k];
+            return {
+              name: c.name, pct: c.pct, due: c.due,
+              meta: `${c.q} questions · ${c.last}`,
+              onToggle: () => this.setState(st => { const nx = { ...st.sel }; if (on) delete nx[k]; else nx[k] = true; return { sel: nx }; }),
+              rowStyle: { width: '100%', display: 'flex', alignItems: 'center', gap: '10px', padding: '11px 14px', minHeight: '48px', borderTop: `1px solid ${T.border}`, background: on ? soft : 'transparent', border: 'none', borderTopStyle: 'solid', color: T.text, textAlign: 'left' },
+              boxStyle: { width: '18px', height: '18px', flex: 'none', display: 'grid', placeItems: 'center', borderRadius: '5px', border: `1px solid ${on ? a : T.border2}`, background: on ? soft2 : 'transparent', color: a },
+              checked: on,
+              dueStyle: { display: 'inline-flex', flex: 'none', whiteSpace: 'nowrap', fontSize: '11px', padding: '2px 8px', borderRadius: '6px', color: c.due ? a : T.faint, background: c.due ? soft : 'transparent' },
+              dueLabel: c.due ? c.due + ' à revoir' : 'à jour',
+              barStyle: bar(c.pct, this.hue(x.hue))
+            };
+          })
+        };
+      }),
+      selCount: Object.keys(s.sel).length,
+      selQuestions: Object.keys(s.sel).length
+        ? Object.keys(s.sel).reduce((t, k) => {
+          const [sn, cn] = k.split('§'); const c = (lib[sn] || []).find(x => x.name === cn);
+          return t + (c ? (c.due || c.q) : 0);
+        }, 0)
+        : 24,
+      hasSel: Object.keys(s.sel).length > 0,
+      noSel: Object.keys(s.sel).length === 0,
+      clearSel: () => this.setState({ sel: {} }),
+      hubHint: Object.keys(s.sel).length
+        ? 'Repère mélangera ces chapitres et commencera par les notions les plus fragiles.'
+        : 'Sans sélection, la session du jour reprend les 24 questions que Repère a programmées.',
+
+      form: s.form, subjectNames: this.SUBJECTS.map(x => x.name),
+      formChapters: (lib[s.form.subject] || []).map(c => c.name),
+      isNewChapter: s.form.chapter === '__new',
+      newChapter: s.newChapter,
+      onNewChapter: e => this.setState({ newChapter: e.target.value }),
+      onFormQ: e => this.setState({ form: { ...s.form, q: e.target.value } }),
+      onFormA: e => this.setState({ form: { ...s.form, a: e.target.value } }),
+      onFormSubject: e => this.setState({ form: { ...s.form, subject: e.target.value, chapter: (lib[e.target.value] || [{ name: '' }])[0].name } }),
+      onFormChapter: e => this.setState({ form: { ...s.form, chapter: e.target.value } }),
+      diffOpts: ['Facile', 'Moyen', 'Difficile'].map(d => ({ label: d, onSelect: () => this.setState({ form: { ...s.form, diff: d } }), style: this.pill(s.form.diff === d, a) })),
+      created: s.created, createdCount: s.created.length, hasCreated: s.created.length > 0, noCreated: s.created.length === 0,
+      submitQuestion: () => this.addQuestion(),
+
+      card: { ...card, tagStyle: tag(card.diff) },
+      revealed, notRevealed: !revealed, ratings,
+      revPos: s.revIdx + 1, revTotal: this.QUEUE.length, revLeft: this.QUEUE.length - s.revIdx,
+      revBarStyle: bar(((s.revIdx + (revealed ? 0.5 : 0)) / this.QUEUE.length) * 100),
+      reveal: () => this.setState({ revealed: true }),
+      quitReview: () => this.go('dashboard'),
+      startReview: () => this.setState({ route: 'review', revealed: false, revIdx: 0 }),
+      goDashboard: () => this.go('dashboard'), goSubjects: () => this.go('subjects'),
+      goSubject: () => this.go('subject'), goCreate: () => this.go('create'), goSettings: () => this.go('settings'),
+      reviewShellStyle: { flex: 1, display: 'flex', flexDirection: 'column', background: T.bg, position: 'relative', overflow: 'hidden' },
+      reviewBodyStyle: { position: 'relative', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: isMobile ? '22px 18px' : '32px 28px' },
+      cardStyle: immersive
+        ? { width: '100%', maxWidth: '640px', padding: 0, background: 'transparent' }
+        : { width: '100%', maxWidth: '620px', padding: isMobile ? '22px' : '32px', background: T.surface, border: `1px solid ${T.border}`, borderRadius: '16px', boxShadow: T.shadow },
+      questionStyle: { fontSize: qSize + 'px', lineHeight: 1.28, letterSpacing: '-.02em', fontWeight: 500, textWrap: 'pretty' },
+      answerStyle: { fontSize: (isMobile ? 19 : 23) + 'px', lineHeight: 1.35, letterSpacing: '-.01em', color: a, textWrap: 'pretty' },
+      ratingRowStyle: { display: 'grid', gridTemplateColumns: immersive ? '1fr' : isMobile ? '1fr' : 'repeat(3,1fr)', gap: '9px', maxWidth: immersive ? '640px' : 'none', margin: immersive ? '0 auto' : 0 },
+
+      summaryLine: `${this.QUEUE.length} questions revues · ${s.tally.ok} maîtrisées, ${s.tally.hard} difficiles, ${s.tally.bad} erreur`,
+      summaryRows: [
+        ['Maîtrisées', s.tally.ok, T.ok], ['Difficiles', s.tally.hard, T.warn], ['Erreurs', s.tally.bad, T.err]
+      ].map(([label, value, c], i) => ({ label, value, dotStyle: dot(c, 8), rowStyle: { display: 'flex', alignItems: 'center', gap: '11px', padding: '13px 15px', borderTop: i ? `1px solid ${T.border}` : 'none' } })),
+
+      statKpis: [
+        { label: 'Taux de réussite', value: 74, unit: '%', delta: '+6 pts / 7 j', deltaStyle: { fontSize: '11.5px', color: T.ok, marginTop: '6px' } },
+        { label: 'Temps cette semaine', value: '5 h 32', unit: '', delta: '+48 min', deltaStyle: { fontSize: '11.5px', color: T.ok, marginTop: '6px' } },
+        { label: 'Questions maîtrisées', value: 452, unit: '/ 637', delta: '+31 cette semaine', deltaStyle: { fontSize: '11.5px', color: T.faint, marginTop: '6px' } },
+        { label: 'Questions difficiles', value: 68, unit: '', delta: 'Surtout en philosophie', deltaStyle: { fontSize: '11.5px', color: T.warn, marginTop: '6px' } }
+      ],
+      trendPoints, heat, prefs, themeCards,
+
+      pomoClock: `${String(Math.floor(s.left / 60)).padStart(2, '0')}:${String(s.left % 60).padStart(2, '0')}`,
+      pomoOffset: 716 - 716 * (s.left / (s.mode === 'work' ? 1500 : 300)),
+      pomoLabel: s.mode === 'work' ? (s.running ? 'Travail en cours · Mathématiques' : 'Travail · prêt à démarrer') : 'Pause',
+      pomoAction: s.running ? 'Mettre en pause' : s.left === 0 ? 'Recommencer' : 'Démarrer',
+      pomoIcon: s.running ? 'ph ph-pause' : 'ph ph-play',
+      togglePomo: () => this.setState(st => (st.left === 0 ? { left: st.mode === 'work' ? 1500 : 300, running: true } : { running: !st.running })),
+      resetPomo: () => this.setState(st => ({ running: false, left: st.mode === 'work' ? 1500 : 300 })),
+      pomoModes: [['Travail', 'work', 1500], ['Pause', 'pause', 300]].map(([label, v, dur]) => ({ label, onSelect: () => this.setState({ mode: v, left: dur, running: false }), style: this.pill(s.mode === v, a) })),
+      pomoStats: [
+        { label: 'Sessions terminées', value: s.done }, { label: 'Aujourd\u2019hui', value: '72 min' }, { label: 'Cette semaine', value: '5 h 32' }
+      ],
+      toast: s.toast
+    };
+  }
+}
+
+</script>
+</body>
+</html>
