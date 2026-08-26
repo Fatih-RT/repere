@@ -92,12 +92,12 @@ export function SettingsPage() {
     }
   }
 
-  async function onRestore(kind: "subject" | "chapter" | "question", id: string, label: string) {
+  async function onRestore(kind: "category" | "subject" | "chapter" | "question", id: string, label: string) {
     await restoreFromTrash(kind, id);
     toast.show(`« ${label} » restauré${kind === "chapter" ? "" : "e"}.`);
   }
 
-  const trashCount = (trash?.subjects.length ?? 0) + (trash?.chapters.length ?? 0) + (trash?.questions.length ?? 0);
+  const trashCount = (trash?.categories.length ?? 0) + (trash?.subjects.length ?? 0) + (trash?.chapters.length ?? 0) + (trash?.questions.length ?? 0);
 
   const prefs: { key: "notif" | "sons" | "anim" | "mix_subjects"; label: string; hint: string }[] = [
     { key: "notif", label: "Notifications", hint: "Un rappel quotidien à 18 h 30" },
@@ -247,14 +247,31 @@ export function SettingsPage() {
           )}
           <i className={trashOpen ? "ph ph-caret-up" : "ph ph-caret-down"} style={{ fontSize: 13, color: "var(--faint)" }} />
         </button>
+        {trashCount > 50 && (
+          <div className="mt-2 p-[10px_13px] rounded-lg flex items-center gap-2.5 text-[12.5px]" style={{ border: "1px solid color-mix(in srgb, var(--warn) 40%, transparent)", color: "var(--warn)" }}>
+            <i className="ph ph-info" style={{ fontSize: 14 }} />
+            La corbeille contient {trashCount} éléments. Rien n'est perdu — ils sont
+            restaurables pendant 30 jours — mais ça vaut le coup d'y jeter un œil.
+          </div>
+        )}
         {trashOpen && (
           <div className="mt-2 border border-border rounded-lg bg-surface overflow-hidden animate-rise">
             {!trashCount ? (
               <p className="m-0 p-4 text-[12.5px]" style={{ color: "var(--faint)" }}>Rien dans la corbeille. Les éléments supprimés y restent 30 jours avant d'être effacés définitivement.</p>
             ) : (
               <div className="flex flex-col">
+                {trash?.categories.map((cat, i) => (
+                  <div key={cat.id} className="flex items-center gap-3 p-[11px_14px]" style={{ borderTop: i ? "1px solid var(--border)" : "none" }}>
+                    <i className="ph ph-graduation-cap" style={{ fontSize: 14, color: "var(--faint)" }} />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[13px] truncate">{cat.name}</div>
+                      <div className="text-[11px]" style={{ color: "var(--faint)" }}>Catégorie · {relativeFr(cat.deleted_at).replace(/^Révisé /, "Supprimée ")}</div>
+                    </div>
+                    <Button size="sm" onClick={() => onRestore("category", cat.id, cat.name)}>Restaurer</Button>
+                  </div>
+                ))}
                 {trash?.subjects.map((s, i) => (
-                  <div key={s.id} className="flex items-center gap-3 p-[11px_14px]" style={{ borderTop: i ? "1px solid var(--border)" : "none" }}>
+                  <div key={s.id} className="flex items-center gap-3 p-[11px_14px]" style={{ borderTop: i || trash.categories.length ? "1px solid var(--border)" : "none" }}>
                     <i className="ph ph-book" style={{ fontSize: 14, color: "var(--faint)" }} />
                     <div className="flex-1 min-w-0">
                       <div className="text-[13px] truncate">{s.name}</div>
@@ -264,7 +281,7 @@ export function SettingsPage() {
                   </div>
                 ))}
                 {trash?.chapters.map((c, i) => (
-                  <div key={c.id} className="flex items-center gap-3 p-[11px_14px]" style={{ borderTop: i || trash.subjects.length ? "1px solid var(--border)" : "none" }}>
+                  <div key={c.id} className="flex items-center gap-3 p-[11px_14px]" style={{ borderTop: i || trash.categories.length || trash.subjects.length ? "1px solid var(--border)" : "none" }}>
                     <i className="ph ph-bookmark-simple" style={{ fontSize: 14, color: "var(--faint)" }} />
                     <div className="flex-1 min-w-0">
                       <div className="text-[13px] truncate">{c.name}</div>
@@ -274,7 +291,7 @@ export function SettingsPage() {
                   </div>
                 ))}
                 {trash?.questions.map((q, i) => (
-                  <div key={q.id} className="flex items-center gap-3 p-[11px_14px]" style={{ borderTop: i || trash.subjects.length || trash.chapters.length ? "1px solid var(--border)" : "none" }}>
+                  <div key={q.id} className="flex items-center gap-3 p-[11px_14px]" style={{ borderTop: i || trash.categories.length || trash.subjects.length || trash.chapters.length ? "1px solid var(--border)" : "none" }}>
                     <i className="ph ph-question" style={{ fontSize: 14, color: "var(--faint)" }} />
                     <div className="flex-1 min-w-0">
                       <div className="text-[13px] truncate"><MathText text={q.question} /></div>

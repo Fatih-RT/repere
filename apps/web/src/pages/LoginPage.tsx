@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useLogin } from "@/lib/queries";
 import { pbErrorMessage } from "@/lib/pbErrors";
 import { Input } from "@/components/ui/Field";
@@ -48,7 +48,6 @@ export function LoginPage() {
           </Button>
           <div className="flex justify-between text-[12.5px] mt-0.5">
             <a href="#" className="no-underline">Mot de passe oublié ?</a>
-            <Link to="/register" className="no-underline" style={{ color: "var(--muted)" }}>Créer un compte</Link>
           </div>
         </form>
       </div>

@@ -5,6 +5,12 @@ import { pbErrorMessage } from "@/lib/pbErrors";
 import { Input } from "@/components/ui/Field";
 import { Button } from "@/components/ui/Button";
 
+// Not routed in App.tsx — this app has exactly two users, created by hand
+// from the PocketBase Admin UI (see pb_migrations/1787658780_close_registration.js,
+// which locks the `users` collection's createRule to superusers only). Kept
+// here rather than deleted in case self-registration ever needs to come
+// back; `useRegister()` in lib/queries.ts still works if this is re-routed,
+// it would just 403 against the current schema until that migration is reverted.
 export function RegisterPage() {
   const [displayName, setDisplayName] = useState("");
   const [className, setClassName] = useState("");

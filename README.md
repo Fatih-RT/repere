@@ -1,9 +1,16 @@
 # Repère
 
-A personal spaced-repetition study app — subjects, chapters, questions with
-KaTeX/mhchem support, a review session driven by an SM-2-derived scheduler,
-Pomodoro, dashboard/statistics, and a soft-delete trash. Built for one or two
-users (no public sign-up flow beyond a plain email/password register screen).
+A personal spaced-repetition study app. The content hierarchy is
+**category → subject → chapter → question** (e.g. "L2 Chimie" → "Chimie
+organique" → "Réactions" → a question) — category is the only optional level,
+there purely to group subjects when a user is juggling more than one track
+at once (a degree and a competitive exam prep, say). Questions support
+KaTeX/mhchem and pasted images; review sessions run on an SM-2-derived
+scheduler; there's a Pomodoro timer, a dashboard/statistics, and a
+never-auto-emptied trash (see "Trash" below). Built for exactly two users,
+both created by hand from the PocketBase Admin UI — there is no public
+sign-up. `apps/web/src/pages/RegisterPage.tsx` is kept in the repo but not
+routed; see `pb_migrations/1787658780_close_registration.js`.
 
 ## Architecture
 
@@ -117,12 +124,87 @@ account. Put that path behind Cloudflare Access (Zero Trust → Access →
 Applications) so the admin UI isn't reachable by anyone who just knows the
 URL — the rest of the app is intentionally open at the root path since it's
 protected by PocketBase's own per-user auth and collection rules instead.
+From the Admin UI, create the two real user accounts by hand (Collections →
+`users` → New record) — registration is closed at the schema level, this is
+the only way in.
+
+### To do after the first start
+
+Two settings genuinely can't be expressed as a migration — they live in
+PocketBase's own runtime settings (`_params` table / Admin UI), not the
+`_collections` schema — so nothing in `pb_migrations/` sets them, and it's
+easy to forget them on a fresh deploy. Do both from `/_/` → **Settings**:
+
+1. **Rate limit the auth routes** (Settings → Rate limiting): enable it and
+   add rules for at least `POST /api/collections/users/auth-with-password`
+   and `POST /api/collections/users/auth-refresh` — a handful of requests
+   per IP per minute is plenty for two people logging in from their own
+   devices, and it's the only thing standing between this instance and an
+   unthrottled password-guessing loop against those two accounts.
+2. **Turn on daily automatic backups** (Settings → Backups): enable
+   scheduled backups, daily, with a handful of backups retained. This is
+   separate from — and a better default than — the manual `tar` approach
+   below, since it runs unattended.
+
+### Trash
+
+Deleting a category, subject, chapter, or question never removes it right
+away — it's soft-deleted (`deleted_at` set) and shows up in **Paramètres →
+Corbeille** with a "Restaurer" button, alongside a 5-second "Annuler" toast
+at the moment of deletion itself. A `pb_hooks` cron (`pb_hooks/purge_trash.pb.js`)
+permanently removes anything that's sat in the trash for more than 30 days —
+that cron is the *only* thing that ever hard-deletes data in this app; there
+is deliberately no manual "delete forever" button anywhere in the UI.
+
+A few rules worth knowing if you're touching this code:
+
+- Deleting a category **never** touches its subjects — `subjects.category`
+  is not a cascading relation on purpose. A subject whose category was
+  deleted (or is mid-30-day-countdown in the trash) just renders under
+  "Sans catégorie" until the category is restored.
+- Deleting a subject or chapter **does** cascade — to its chapters/questions,
+  or just its questions, respectively — so trashing a subject actually hides
+  everything under it, and restoring it brings all of that back together.
+  See `buildSubjectCascadePlan`/`buildChapterCascadePlan` in
+  `apps/web/src/lib/subjects.ts`.
+- `review_logs` are never deleted, by anything, ever — not by the purge
+  cron (it only targets `categories`/`subjects`/`chapters`/`questions`), and
+  not by any UI action. A log's `question`/`session` relations quietly go
+  empty once the record they pointed to is purged, but `question_text`/
+  `answer_text` (snapshotted at review time) keep the log readable forever —
+  see the manual test below.
+- Settings shows a discreet banner once the trash holds more than 50 items,
+  just so it doesn't silently pile up unnoticed — it's informational only,
+  nothing about it forces a cleanup.
 
 ### Backup & restore
 
 The entire application state — every user, subject, chapter, question,
-review log, and uploaded image — lives in `pb_data/`. Back it up like any
-SQLite-based app:
+review log, and uploaded image — lives in `pb_data/`. Two ways to back it up;
+pick whichever restore path you'll actually want to use later.
+
+**Option A — PocketBase's built-in backups** (what the automatic daily backup
+above produces, and what you get if you trigger one by hand from Settings →
+Backups → "Create backup"): a zip snapshot stored inside `pb_data/backups/`.
+
+To restore one:
+
+```bash
+docker compose -f infra/docker-compose.yml down
+# with the stack stopped, unzip the backup over a fresh pb_data/ — it
+# contains a full replacement data.db, auxiliary.db, and storage/
+rm -rf pb_data && mkdir pb_data
+unzip pb_data_backup_2026-01-01T03_00_00.zip -d pb_data
+docker compose -f infra/docker-compose.yml up -d
+```
+
+(You can also restore through the Admin UI itself — Settings → Backups →
+pick the backup → Restore — while the instance is still running; PocketBase
+handles stopping/swapping/restarting internally. The `docker compose down`
+path above is the one that still works if the instance won't start at all.)
+
+**Option B — a manual tar snapshot**, if you'd rather script your own backup
+outside PocketBase's scheduler:
 
 ```bash
 # Backup: stop writes briefly, or just accept a point-in-time copy of a
@@ -137,13 +219,30 @@ tar -xzf repere-backup-2026-01-01.tar.gz -C .
 docker compose -f infra/docker-compose.yml up -d
 ```
 
-PocketBase also has a built-in backup feature in its Admin UI (Settings →
-Backups) that snapshots `pb_data/` to a zip on a schedule, if you'd rather
-not script it. Separately, each user has a **Paramètres → Exporter mes
-données** button that downloads their own subjects/chapters/questions/review
-history as JSON — a personal-level export, not a substitute for backing up
-`pb_data/` itself (it doesn't include other users' data, uploaded images, or
-anything needed to actually restore the app).
+Separately, each user has a **Paramètres → Exporter mes données** button
+that downloads their own subjects/chapters/questions/review history as
+JSON — a personal-level export, not a substitute for either backup above
+(it doesn't include other users' data, uploaded images, or anything needed
+to actually restore the app).
+
+### Manual test: a review log survives its question being deleted
+
+Worth checking by hand after touching anything near `review_logs` or the
+trash — this exercises the exact bug fixed by
+`pb_migrations/1787658790_review_logs_snapshot.js` (a required, non-cascading
+relation blocked deletion of any question that had ever been reviewed):
+
+1. Create a question, then review it once from `/review/session` (any
+   rating). This writes a `review_logs` row referencing that question.
+2. Delete the question (from its chapter, or by deleting the chapter/subject
+   it belongs to) — it goes to the trash (`deleted_at` set), nothing is hard-deleted yet.
+3. From the PocketBase Admin UI (`/_/` → Collections → `questions`), hard-delete
+   that same record — this is the same operation trash purging performs.
+4. In Collections → `review_logs`, open the log row for that review. Expect:
+   the `question` relation is now empty, but `question_text` and
+   `answer_text` still hold the original text — the log is still fully
+   readable. Before the fix, step 3 itself would have failed outright with
+   a validation error on the `question` field.
 
 ## Known limitation: auth token storage
 

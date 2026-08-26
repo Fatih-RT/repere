@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { pb } from "./pb";
+import { pb, pbDate } from "./pb";
 import { useSettings } from "./queries";
 import { appDayStart } from "./day";
 import { schedule, type CardState, type Rating } from "./scheduler";
@@ -28,39 +28,48 @@ export interface QueueParams {
   subjectId?: string;
 }
 
-function dueSort(a: Question, b: Question) {
-  return new Date(a.due_at).getTime() - new Date(b.due_at).getTime();
-}
-function newSort(a: Question, b: Question) {
-  return a.created.localeCompare(b.created);
-}
-
 export function useReviewQueue(params: QueueParams) {
   const { data: settings } = useSettings();
   const custom = !!params.chapterIds?.length;
   return useQuery({
     queryKey: ["review-queue", params.subjectId, params.chapterIds?.slice().sort().join(",")],
     queryFn: async (): Promise<Question[]> => {
-      let filter = `deleted_at = "" && suspended = false`;
+      let baseFilter = `deleted_at = "" && suspended = false`;
       if (params.chapterIds?.length) {
-        filter += ` && (${params.chapterIds.map((id) => pb.filter("chapter = {:id}", { id })).join(" || ")})`;
+        baseFilter += ` && (${params.chapterIds.map((id) => pb.filter("chapter = {:id}", { id })).join(" || ")})`;
       } else if (params.subjectId) {
-        filter += ` && ${pb.filter("subject = {:id}", { id: params.subjectId })}`;
+        baseFilter += ` && ${pb.filter("subject = {:id}", { id: params.subjectId })}`;
       }
-      const all = await pb.collection("questions").getFullList<Question>({ filter, sort: "created" });
-      const now = Date.now();
-      const dueCards = all.filter((q) => q.state !== "new" && new Date(q.due_at).getTime() <= now).sort(dueSort);
-      const newCards = all.filter((q) => q.state === "new").sort(newSort);
+      // Due/new split (and the due_at <= now cutoff) happens server-side via
+      // the filter, not by fetching every question and filtering in JS.
+      const nowPb = pbDate(new Date());
+      const [dueCards, newCards] = await Promise.all([
+        pb.collection("questions").getFullList<Question>({
+          filter: `${baseFilter} && state != "new" && ${pb.filter("due_at <= {:now}", { now: nowPb })}`,
+          sort: "due_at",
+        }),
+        pb.collection("questions").getFullList<Question>({ filter: `${baseFilter} && state = "new"`, sort: "created" }),
+      ]);
 
       if (custom) return [...dueCards, ...newCards];
 
       const dayStart = appDayStart(new Date(), settings!.timezone, settings!.day_cutoff_hour);
       const todayLogs = await pb.collection("review_logs").getFullList<ReviewLog>({
-        filter: pb.filter("reviewed_at >= {:start}", { start: dayStart.toISOString() }),
-        fields: "state_before",
+        filter: pb.filter("reviewed_at >= {:start}", { start: pbDate(dayStart) }),
+        fields: "question,state_before,reviewed_at",
+        sort: "reviewed_at",
       });
-      const newAlready = todayLogs.filter((l) => l.state_before === "new").length;
-      const reviewAlready = todayLogs.length - newAlready;
+      // Counted per distinct question, not per log row: a card rated
+      // "again" and reviewed again later the same day writes two logs but
+      // must only consume one slot of today's budget. Bucketed by
+      // whichever state_before it had the *first* time it was seen today.
+      const seenToday = new Map<string, "new" | "review">();
+      for (const log of todayLogs) {
+        if (!log.question || seenToday.has(log.question)) continue;
+        seenToday.set(log.question, log.state_before === "new" ? "new" : "review");
+      }
+      const newAlready = Array.from(seenToday.values()).filter((v) => v === "new").length;
+      const reviewAlready = seenToday.size - newAlready;
       const reviewBudget = Math.max(0, settings!.daily_review_limit - reviewAlready);
       const newBudget = Math.max(0, settings!.daily_new_limit - newAlready);
 
@@ -138,6 +147,11 @@ export function useAnswerCard() {
         user: pb.authStore.record!.id,
         question: question.id,
         session: sessionId,
+        // Snapshotted now, not read back later — this is what keeps the log
+        // readable after the question itself is gone (see the migration
+        // that added these two fields for why the relation can end up empty).
+        question_text: question.question,
+        answer_text: question.answer,
         rating,
         state_before: before.state,
         interval_before: before.intervalDays,

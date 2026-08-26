@@ -1,8 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { pb } from "./pb";
+import { pb, pbDate } from "./pb";
 import { useAuth } from "./auth";
 import { useSettings } from "./queries";
 import { useLibrary } from "./subjects";
+import { useCategories } from "./categories";
 import { appDayKey, appDayStart } from "./day";
 import { computeStreak } from "./streak";
 import { easeToDifficulty } from "./scheduler";
@@ -29,13 +30,14 @@ export interface DashboardData {
   streak: { current: number; activeDaysLast30: number };
   goalTotalMinutes: number;
   weekBars: { day: string; minutes: number; isToday: boolean }[];
-  subjectProgress: { name: string; hue: number; pct: number }[];
+  subjectProgress: { id: string; name: string; hue: number; pct: number }[];
 }
 
 export function useDashboard() {
   const { user } = useAuth();
   const { data: settings } = useSettings();
   const { data: library } = useLibrary();
+  const { data: categories } = useCategories();
 
   return useQuery({
     queryKey: ["dashboard", user?.id],
@@ -49,19 +51,19 @@ export function useDashboard() {
 
       const [dueQuestions, recentLogs, allReviewedDates, pomos, sessions] = await Promise.all([
         pb.collection("questions").getFullList<Question>({
-          filter: pb.filter("deleted_at = \"\" && suspended = false && due_at <= {:now}", { now: now.toISOString() }),
+          filter: pb.filter("deleted_at = \"\" && suspended = false && due_at <= {:now}", { now: pbDate(now) }),
         }),
         pb.collection("review_logs").getFullList<ReviewLog>({
-          filter: pb.filter("reviewed_at >= {:start}", { start: weekStart.toISOString() }),
+          filter: pb.filter("reviewed_at >= {:start}", { start: pbDate(weekStart) }),
           fields: "rating,reviewed_at",
         }),
         pb.collection("review_logs").getFullList<ReviewLog>({ fields: "reviewed_at", sort: "-reviewed_at" }),
         pb.collection("pomodoro_sessions").getFullList<PomodoroSession>({
-          filter: pb.filter("started_at >= {:start} && phase = \"focus\"", { start: weekStart.toISOString() }),
+          filter: pb.filter("started_at >= {:start} && phase = \"focus\"", { start: pbDate(weekStart) }),
           fields: "started_at,actual_seconds",
         }),
         pb.collection("review_sessions").getFullList<ReviewSession>({
-          filter: pb.filter("started_at >= {:start} && ended_at != \"\"", { start: weekStart.toISOString() }),
+          filter: pb.filter("started_at >= {:start} && ended_at != \"\"", { start: pbDate(weekStart) }),
           fields: "started_at,ended_at",
         }),
       ]);
@@ -112,11 +114,14 @@ export function useDashboard() {
 
       const streak = computeStreak(allReviewedDates.map((l) => l.reviewed_at), now, tz, cutoff);
 
+      // A trashed/purged category (not in `categories`, the active list)
+      // falls back to the subject's own hue — same rule as groupByCategory.
+      const categoryHueById = new Map((categories ?? []).map((c) => [c.id, c.hue]));
       const subjectProgress = (library ?? [])
         .slice()
         .sort((a, b) => b.questionsCount - a.questionsCount)
         .slice(0, 5)
-        .map((s) => ({ name: s.name, hue: s.hue, pct: s.mastery }));
+        .map((s) => ({ id: s.id, name: s.name, hue: categoryHueById.get(s.category) ?? s.hue, pct: s.mastery }));
 
       return {
         dueCount: dueQuestions.length,
@@ -129,6 +134,6 @@ export function useDashboard() {
         subjectProgress,
       };
     },
-    enabled: !!user && !!settings && !!library,
+    enabled: !!user && !!settings && !!library && !!categories,
   });
 }

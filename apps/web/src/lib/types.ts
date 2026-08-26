@@ -24,6 +24,18 @@ export type Rating = "again" | "hard" | "good";
 export type PomodoroPhase = "focus" | "short_break" | "long_break";
 export type ReviewSessionMode = "due" | "selection";
 
+export interface Category {
+  id: string;
+  user: string;
+  name: string;
+  hue: number;
+  icon: string;
+  position: number;
+  deleted_at: string;
+  created: string;
+  updated: string;
+}
+
 export interface Subject {
   id: string;
   user: string;
@@ -31,6 +43,9 @@ export interface Subject {
   description: string;
   icon: string;
   hue: number;
+  // Empty string = no category, same convention as every other optional
+  // relation in this app (question/session on review_logs, etc.).
+  category: string;
   position: number;
   deleted_at: string;
   created: string;
@@ -87,8 +102,13 @@ export interface ReviewSession {
 export interface ReviewLog {
   id: string;
   user: string;
+  // Optional: cleared when the reviewed question (or session) is later hard-
+  // deleted from the trash — question_text/answer_text are the durable
+  // record, snapshotted at write time so the log stays readable regardless.
   question: string;
   session: string;
+  question_text: string;
+  answer_text: string;
   rating: Rating;
   state_before: SrsState;
   interval_before: number;

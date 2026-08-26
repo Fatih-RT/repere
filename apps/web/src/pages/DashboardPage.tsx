@@ -162,7 +162,7 @@ export function DashboardPage() {
                 <div className="text-[12.5px] text-muted mb-[13px]">Progression par matière</div>
                 <div className="flex flex-col gap-[11px]">
                   {dash.subjectProgress.map((p) => (
-                    <div key={p.name}>
+                    <div key={p.id}>
                       <div className="flex items-center gap-2 mb-[5px]">
                         <Dot color={subjectHue(p.hue, false, isDark)} />
                         <span className="text-[12.5px] flex-1 truncate">{p.name}</span>

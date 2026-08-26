@@ -1,12 +1,17 @@
+import { useState } from "react";
 import { useStats } from "@/lib/stats";
 import { useDashboard } from "@/lib/dashboard";
 import { useLibrary } from "@/lib/subjects";
+import { useCategories } from "@/lib/categories";
 import { useTheme } from "@/theme/ThemeProvider";
 import { subjectHue } from "@/lib/visual";
 import { relativeFr } from "@/lib/format";
 import { Dot } from "@/components/ui/Badge";
 import { ProgressBar } from "@/components/ui/ProgressBar";
+import { Select } from "@/components/ui/Field";
 import { Skeleton } from "@/components/ui/Skeleton";
+
+const ALL_CATEGORIES = "__all";
 
 function fmtHoursMinutes(totalMinutes: number): string {
   const h = Math.floor(totalMinutes / 60);
@@ -19,11 +24,15 @@ function signed(n: number, suffix: string): string {
 }
 
 export function StatsPage() {
-  const { data: stats, isLoading: statsLoading } = useStats();
+  const [categoryFilter, setCategoryFilter] = useState(ALL_CATEGORIES);
+  const scopedCategory = categoryFilter === ALL_CATEGORIES ? undefined : categoryFilter;
+  const { data: stats, isLoading: statsLoading } = useStats(scopedCategory);
   const { data: dash, isLoading: dashLoading } = useDashboard();
-  const { data: library } = useLibrary();
+  const { data: fullLibrary } = useLibrary();
+  const { data: categories } = useCategories();
   const { theme } = useTheme();
   const isDark = theme === "dark";
+  const library = scopedCategory ? fullLibrary?.filter((s) => s.category === scopedCategory) : fullLibrary;
 
   if (statsLoading || dashLoading || !stats || !dash || !library) {
     return (
@@ -49,8 +58,18 @@ export function StatsPage() {
 
   return (
     <div className="animate-fade">
-      <h1 className="m-0 mb-1 text-2xl font-medium tracking-tight">Statistiques</h1>
-      <p className="m-0 mb-5 text-[13.5px] text-muted">Quatre questions, quatre graphiques. Rien de décoratif.</p>
+      <div className="flex items-end gap-3.5 flex-wrap mb-5">
+        <div className="flex-1 min-w-[200px]">
+          <h1 className="m-0 mb-1 text-2xl font-medium tracking-tight">Statistiques</h1>
+          <p className="m-0 text-[13.5px] text-muted">Quatre questions, quatre graphiques. Rien de décoratif.</p>
+        </div>
+        {!!categories?.length && (
+          <Select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="min-w-[160px]">
+            <option value={ALL_CATEGORIES}>Toutes les catégories</option>
+            {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          </Select>
+        )}
+      </div>
 
       <div className="grid gap-2.5 mb-3.5" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))" }}>
         {kpis.map((k) => (

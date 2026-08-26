@@ -1,22 +1,36 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLibrary } from "@/lib/subjects";
+import { useCategories } from "@/lib/categories";
 import { useReviewQueue } from "@/lib/review";
 import { useTheme } from "@/theme/ThemeProvider";
 import { Button } from "@/components/ui/Button";
+import { Select } from "@/components/ui/Field";
 import { DueTag } from "@/components/ui/Badge";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { subjectHue } from "@/lib/visual";
 
+const ALL_CATEGORIES = "__all";
+
 export function ReviewHubPage() {
-  const { data: library, isLoading } = useLibrary();
+  const { data: fullLibrary, isLoading } = useLibrary();
+  const { data: categories } = useCategories();
   const { theme } = useTheme();
   const navigate = useNavigate();
   const isDark = theme === "dark";
   const [openSubject, setOpenSubject] = useState<string | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState(ALL_CATEGORIES);
   // Keys are "subjectId§chapterId" — mirrors the design mock's selection model.
   const [sel, setSel] = useState<Record<string, boolean>>({});
+
+  // Narrows which chapters are offered for selection to one cursus — it
+  // does not change what "today's due session" (no selection) pulls in,
+  // which stays account-wide by design.
+  const library = useMemo(
+    () => (categoryFilter === ALL_CATEGORIES ? fullLibrary : fullLibrary?.filter((s) => s.category === categoryFilter)),
+    [fullLibrary, categoryFilter]
+  );
 
   const selectedChapterIds = useMemo(
     () => Object.keys(sel).filter((k) => sel[k]).map((k) => k.split("§")[1]),
@@ -69,6 +83,14 @@ export function ReviewHubPage() {
             Choisis les chapitres à revoir, ou lance directement la session du jour.
           </p>
         </div>
+        {!!categories?.length && (
+          <label className="block">
+            <Select value={categoryFilter} onChange={(e) => { setCategoryFilter(e.target.value); setOpenSubject(null); }} className="min-w-[160px]">
+              <option value={ALL_CATEGORIES}>Toutes les catégories</option>
+              {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </Select>
+          </label>
+        )}
       </div>
 
       {isLoading ? (

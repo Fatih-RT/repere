@@ -6,7 +6,6 @@ import { ThemeProvider } from "@/theme/ThemeProvider";
 import { ToastProvider } from "@/components/ui/Toast";
 import { AppShell } from "@/layout/AppShell";
 import { LoginPage } from "@/pages/LoginPage";
-import { RegisterPage } from "@/pages/RegisterPage";
 
 const DashboardPage = lazy(() => import("@/pages/DashboardPage").then((m) => ({ default: m.DashboardPage })));
 const SubjectsPage = lazy(() => import("@/pages/SubjectsPage").then((m) => ({ default: m.SubjectsPage })));
@@ -55,8 +54,9 @@ export default function App() {
   return (
     <Suspense fallback={<Splash />}>
       <Routes>
+        {/* /register intentionally not routed — see RegisterPage.tsx for why
+            the component is kept in the repo but unreachable. */}
         <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />} />
-        <Route path="/register" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <RegisterPage />} />
 
         {!checked ? (
           <Route path="*" element={<Splash />} />

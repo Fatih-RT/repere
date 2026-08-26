@@ -23,10 +23,11 @@ export interface ChapterSummary extends Chapter {
 const SORT_BY_COLLECTION: Record<string, string> = {
   subjects: "position,created",
   chapters: "position,created",
+  categories: "position,created",
   questions: "created",
 };
 
-async function fetchActive<T>(collection: string, extraFilter?: string): Promise<T[]> {
+export async function fetchActive<T>(collection: string, extraFilter?: string): Promise<T[]> {
   const filter = extraFilter ? `deleted_at = "" && ${extraFilter}` : `deleted_at = ""`;
   return pb.collection(collection).getFullList<T>({ filter, sort: SORT_BY_COLLECTION[collection] ?? "created" });
 }
@@ -151,12 +152,13 @@ export function useChapter(id: string | undefined) {
 export function useCreateSubject() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (data: { name: string; description?: string; icon?: string; hue?: number }) =>
+    mutationFn: (data: { name: string; description?: string; icon?: string; hue?: number; category?: string }) =>
       pb.collection("subjects").create<Subject>({
         user: pb.authStore.record!.id,
         description: "",
         icon: "ph ph-book",
         hue: 230,
+        category: "",
         position: Date.now(),
         ...data,
       }),
@@ -167,7 +169,7 @@ export function useCreateSubject() {
 export function useUpdateSubject() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, ...data }: { id: string; name?: string; description?: string; icon?: string; hue?: number }) =>
+    mutationFn: ({ id, ...data }: { id: string; name?: string; description?: string; icon?: string; hue?: number; category?: string }) =>
       pb.collection("subjects").update<Subject>(id, data),
     onSuccess: (_res, vars) => {
       qc.invalidateQueries({ queryKey: ["subjects"] });
@@ -176,13 +178,34 @@ export function useUpdateSubject() {
   });
 }
 
-// Soft-deleting/restoring a subject cascades to its chapters and questions
-// so they actually disappear from (or come back to) every "active" list —
-// the `cascadeDelete: true` in the schema only fires on a hard delete, not
-// this soft one. Restoring a subject also restores every child regardless
-// of whether that specific child was trashed independently earlier — an
-// accepted simplification for a personal, two-user app rather than tracking
-// per-record "why was this deleted" provenance.
+export interface CascadeOp {
+  collection: "subjects" | "chapters" | "questions";
+  id: string;
+  deleted_at: string;
+}
+
+// Pure: the exact set of writes a subject-level soft-delete/restore must
+// perform — the subject itself plus every one of its chapters and
+// questions, so they actually disappear from (or come back to) every
+// "active" list. The schema's `cascadeDelete: true` only fires on a hard
+// delete, never this soft one, hence doing it by hand here. Restoring a
+// subject restores every child regardless of whether that specific child
+// was trashed independently earlier — an accepted simplification for a
+// personal, two-user app rather than tracking per-record "why was this
+// deleted" provenance. Kept separate from the network calls so the actual
+// fan-out logic is unit-testable — see subjects.test.ts.
+export function buildSubjectCascadePlan(subjectId: string, chapters: { id: string }[], questions: { id: string }[], deletedAt: string): CascadeOp[] {
+  return [
+    { collection: "subjects", id: subjectId, deleted_at: deletedAt },
+    ...chapters.map((c) => ({ collection: "chapters" as const, id: c.id, deleted_at: deletedAt })),
+    ...questions.map((q) => ({ collection: "questions" as const, id: q.id, deleted_at: deletedAt })),
+  ];
+}
+
+async function runCascadePlan(plan: CascadeOp[]): Promise<void> {
+  await Promise.all(plan.map((op) => pb.collection(op.collection).update(op.id, { deleted_at: op.deleted_at })));
+}
+
 export function useSoftDeleteSubject() {
   const qc = useQueryClient();
   return useMutation({
@@ -192,11 +215,7 @@ export function useSoftDeleteSubject() {
         fetchActive<Chapter>("chapters", pb.filter("subject = {:id}", { id })),
         fetchActive<Question>("questions", pb.filter("subject = {:id}", { id })),
       ]);
-      await Promise.all([
-        pb.collection("subjects").update<Subject>(id, { deleted_at }),
-        ...chapters.map((c) => pb.collection("chapters").update(c.id, { deleted_at })),
-        ...questions.map((q) => pb.collection("questions").update(q.id, { deleted_at })),
-      ]);
+      await runCascadePlan(buildSubjectCascadePlan(id, chapters, questions, deleted_at));
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["subjects"] }),
   });
@@ -210,11 +229,7 @@ export function useRestoreSubject() {
         pb.collection("chapters").getFullList<Chapter>({ filter: pb.filter("subject = {:id} && deleted_at != \"\"", { id }) }),
         pb.collection("questions").getFullList<Question>({ filter: pb.filter("subject = {:id} && deleted_at != \"\"", { id }) }),
       ]);
-      await Promise.all([
-        pb.collection("subjects").update<Subject>(id, { deleted_at: "" }),
-        ...chapters.map((c) => pb.collection("chapters").update(c.id, { deleted_at: "" })),
-        ...questions.map((q) => pb.collection("questions").update(q.id, { deleted_at: "" })),
-      ]);
+      await runCascadePlan(buildSubjectCascadePlan(id, chapters, questions, ""));
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["subjects"] }),
   });
@@ -244,15 +259,23 @@ export function useUpdateChapter() {
   });
 }
 
+// Same idea as buildSubjectCascadePlan, one level down: a chapter-level
+// soft-delete/restore also touches every one of its own questions.
+export function buildChapterCascadePlan(chapterId: string, questions: { id: string }[], deletedAt: string): CascadeOp[] {
+  return [
+    { collection: "chapters", id: chapterId, deleted_at: deletedAt },
+    ...questions.map((q) => ({ collection: "questions" as const, id: q.id, deleted_at: deletedAt })),
+  ];
+}
+
 export function useSoftDeleteChapter() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
       const deleted_at = new Date().toISOString();
       const questions = await fetchActive<Question>("questions", pb.filter("chapter = {:id}", { id }));
-      const chapter = await pb.collection("chapters").update<Chapter>(id, { deleted_at });
-      await Promise.all(questions.map((q) => pb.collection("questions").update(q.id, { deleted_at })));
-      return chapter;
+      await runCascadePlan(buildChapterCascadePlan(id, questions, deleted_at));
+      return pb.collection("chapters").getOne<Chapter>(id);
     },
     onSuccess: (chapter) => {
       qc.invalidateQueries({ queryKey: ["subjects"] });
@@ -266,9 +289,8 @@ export function useRestoreChapter() {
   return useMutation({
     mutationFn: async (id: string) => {
       const questions = await pb.collection("questions").getFullList<Question>({ filter: pb.filter("chapter = {:id} && deleted_at != \"\"", { id }) });
-      const chapter = await pb.collection("chapters").update<Chapter>(id, { deleted_at: "" });
-      await Promise.all(questions.map((q) => pb.collection("questions").update(q.id, { deleted_at: "" })));
-      return chapter;
+      await runCascadePlan(buildChapterCascadePlan(id, questions, ""));
+      return pb.collection("chapters").getOne<Chapter>(id);
     },
     onSuccess: (chapter) => {
       qc.invalidateQueries({ queryKey: ["subjects"] });

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { pb } from "./pb";
+import { pb, pbDate } from "./pb";
 import { useAuth } from "./auth";
 import { useSettings } from "./queries";
 import { appDayKey, appDayStart } from "./day";
@@ -50,7 +50,7 @@ export function usePomodoroStats() {
       const weekStart = appDayStart(new Date(now.getTime() - 6 * 86400000), tz, cutoff);
 
       const sessions = await pb.collection("pomodoro_sessions").getFullList<PomodoroSession>({
-        filter: pb.filter("started_at >= {:start} && phase = \"focus\"", { start: weekStart.toISOString() }),
+        filter: pb.filter("started_at >= {:start} && phase = \"focus\"", { start: pbDate(weekStart) }),
         fields: "started_at,actual_seconds,completed",
       });
 

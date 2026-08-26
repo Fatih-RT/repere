@@ -19,6 +19,13 @@ services:
   cloudflared:
     image: cloudflare/cloudflared:latest
     restart: unless-stopped
-    command: tunnel run --token ${CLOUDFLARE_TUNNEL_TOKEN:?set CLOUDFLARE_TUNNEL_TOKEN in .env — see README}
+    command: tunnel run
+    # Via TUNNEL_TOKEN rather than `--token` on the command line: an
+    # argv-passed secret shows up in plain text in `docker ps`/`ps aux`
+    # (visible to anyone else on the host with shell access), an env var
+    # doesn't. cloudflared reads TUNNEL_TOKEN itself when no --token flag
+    # is given — this is standard, documented behavior, not a workaround.
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:?set CLOUDFLARE_TUNNEL_TOKEN in .env — see README}
     depends_on:
       - pocketbase
