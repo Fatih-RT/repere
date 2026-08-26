@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useSettings } from "@/lib/queries";
 import { useSubject, useSubjects } from "@/lib/subjects";
 import { useLogPomodoroSession, usePomodoroStats } from "@/lib/pomodoro";
+import { playChime } from "@/lib/sound";
 import { Select } from "@/components/ui/Field";
 import { Skeleton } from "@/components/ui/Skeleton";
 import type { PomodoroPhase } from "@/lib/types";
@@ -65,6 +66,7 @@ export function PomodoroPage() {
   useEffect(() => {
     if (secondsLeft !== 0 || !running) return;
     setRunning(false);
+    if (settings?.sons) playChime();
     if (startedAt.current) {
       logSession.mutate({
         phase, plannedSeconds: durationFor(phase), actualSeconds: durationFor(phase), startedAt: startedAt.current,

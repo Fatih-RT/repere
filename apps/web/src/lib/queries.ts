@@ -84,16 +84,6 @@ export function useChangePassword() {
   });
 }
 
-export function useDeleteAccount() {
-  const { user } = useAuth();
-  return useMutation({
-    mutationFn: async () => {
-      await pb.collection("users").delete(user!.id);
-      pb.authStore.clear();
-    },
-  });
-}
-
 export function useSettings() {
   const { user } = useAuth();
   return useQuery({

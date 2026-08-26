@@ -186,7 +186,11 @@ export const DEFAULT_SETTINGS: Omit<UserSettings, "id" | "user" | "created" | "u
   pomo_sessions: 4,
   daily_goal_mins: 100,
   mix_subjects: true,
-  notif: true,
+  // Off by default: turning it on is what triggers the browser's
+  // permission prompt (see SettingsPage's onTogglePref) — defaulting to
+  // true would mean a user who never opens Settings is silently "opted
+  // in" to a permission that was in fact never granted by their browser.
+  notif: false,
   sons: false,
   anim: true,
 };

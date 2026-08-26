@@ -4,6 +4,8 @@ import { useLibrary } from "@/lib/subjects";
 import { useAnswerCard, useEndSession, useReviewQueue, useStartSession, newRecordId } from "@/lib/review";
 import { questionImageUrl } from "@/lib/questions";
 import { easeToDifficulty } from "@/lib/scheduler";
+import { useSettings } from "@/lib/queries";
+import { playChime } from "@/lib/sound";
 import type { Question, Rating, ReviewSessionMode } from "@/lib/types";
 import { MathText } from "@/components/MathText";
 import { DiffTag } from "@/components/ui/Badge";
@@ -47,6 +49,7 @@ export function ReviewSessionPage() {
   const navigate = useNavigate();
   const launch = (location.state as LaunchState | null) ?? { mode: "due" as const };
   const { data: library } = useLibrary();
+  const { data: settings } = useSettings();
   const { data: liveQueue, isLoading } = useReviewQueue({ subjectId: launch.subjectId, chapterIds: launch.chapterIds });
   const startSession = useStartSession();
   const endSession = useEndSession();
@@ -126,6 +129,7 @@ export function ReviewSessionPage() {
     if (isLast) {
       const seen = nextTally.again + nextTally.hard + nextTally.good;
       await endSession.mutateAsync({ id: sessionId, cardsSeen: seen, cardsCorrect: nextTally.good });
+      if (settings?.sons) playChime();
       const minutes = Math.max(1, Math.round((Date.now() - sessionStartedAt.current) / 60000));
       navigate("/review/summary", { state: { tally: nextTally, total: queue?.length ?? 0, minutes } });
       return;

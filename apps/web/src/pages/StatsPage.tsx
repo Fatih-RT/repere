@@ -61,7 +61,7 @@ export function StatsPage() {
       <div className="flex items-end gap-3.5 flex-wrap mb-5">
         <div className="flex-1 min-w-[200px]">
           <h1 className="m-0 mb-1 text-2xl font-medium tracking-tight">Statistiques</h1>
-          <p className="m-0 text-[13.5px] text-muted">Quatre questions, quatre graphiques. Rien de décoratif.</p>
+          <p className="m-0 text-[13.5px] text-muted">Ta progression, ton temps de travail, tes matières et ta régularité.</p>
         </div>
         {!!categories?.length && (
           <Select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="min-w-[160px]">

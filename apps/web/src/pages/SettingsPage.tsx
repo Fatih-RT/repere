@@ -1,6 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useChangePassword, useDeleteAccount, useLogout, useSettings, useUpdateMe, useUpdateSettings } from "@/lib/queries";
+import { useEffect, useState } from "react";
+import { useChangePassword, useLogout, useSettings, useUpdateMe, useUpdateSettings } from "@/lib/queries";
 import { useAuth } from "@/lib/auth";
 import { useTheme } from "@/theme/ThemeProvider";
 import { useToast } from "@/components/ui/Toast";
@@ -8,6 +7,7 @@ import { pbErrorMessage } from "@/lib/pbErrors";
 import { initials, relativeFr } from "@/lib/format";
 import { buildExportData, downloadJson } from "@/lib/export";
 import { useRestoreFromTrash, useTrash } from "@/lib/trash";
+import { requestNotificationPermission } from "@/lib/notifications";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Field";
 import { Switch } from "@/components/ui/Switch";
@@ -21,11 +21,50 @@ const THEME_OPTIONS: { value: Theme; label: string }[] = [
   { value: "rose", label: "Rose" },
 ];
 
-const THEME_SWATCH: Record<Theme, { bg: string; track: string }> = {
-  light: { bg: "#fbfafa", track: "rgba(27,26,28,.08)" },
-  dark: { bg: "#161826", track: "rgba(233,233,237,.10)" },
-  rose: { bg: "#fdfafb", track: "rgba(120,60,80,.11)" },
+// Mirrors the --bg/--track/--accent values in theme.css for each theme —
+// duplicated here (rather than reading the live CSS vars) because a swatch
+// must show what its *own* theme looks like regardless of which theme is
+// currently active, and var(--accent) always resolves to the active one.
+const THEME_SWATCH: Record<Theme, { bg: string; track: string; accent: string }> = {
+  light: { bg: "#fbfafa", track: "rgba(27,26,28,.08)", accent: "#3a5fc4" },
+  dark: { bg: "#161826", track: "rgba(233,233,237,.10)", accent: "#d98aa4" },
+  rose: { bg: "#fdfafb", track: "rgba(120,60,80,.11)", accent: "#b0446a" },
 };
+
+// A plain controlled <input type="number"> bound straight to the stored
+// value fights the user while they're typing: clearing the field to enter
+// "45" briefly reads as "", which the old code coerced to 1 on every
+// keystroke — so the field snapped back to "1" and the next digit landed
+// after it ("145"). This keeps its own local text while focused and only
+// commits (clamped to >= 1) on blur, so mid-edit the field is free to be
+// empty or partial.
+function NumberField({ value, onCommit }: { value: number; onCommit: (n: number) => void }) {
+  const [local, setLocal] = useState(String(value));
+  const [focused, setFocused] = useState(false);
+
+  useEffect(() => {
+    if (!focused) setLocal(String(value));
+  }, [value, focused]);
+
+  function commit() {
+    setFocused(false);
+    const n = Math.max(1, Math.round(Number(local)) || 1);
+    setLocal(String(n));
+    if (n !== value) onCommit(n);
+  }
+
+  return (
+    <Input
+      type="number"
+      min={1}
+      value={local}
+      onFocus={() => setFocused(true)}
+      onChange={(e) => setLocal(e.target.value)}
+      onBlur={commit}
+      onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+    />
+  );
+}
 
 export function SettingsPage() {
   const { user } = useAuth();
@@ -34,10 +73,8 @@ export function SettingsPage() {
   const updateSettings = useUpdateSettings();
   const updateMe = useUpdateMe();
   const changePassword = useChangePassword();
-  const deleteAccount = useDeleteAccount();
   const logout = useLogout();
   const toast = useToast();
-  const navigate = useNavigate();
   const { data: trash } = useTrash();
   const { restore: restoreFromTrash } = useRestoreFromTrash();
 
@@ -48,11 +85,26 @@ export function SettingsPage() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [passwordError, setPasswordError] = useState<string | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [trashOpen, setTrashOpen] = useState(false);
 
   if (!user || !settings) return null;
+
+  async function onTogglePref(key: "notif" | "sons" | "anim" | "mix_subjects") {
+    const next = !settings![key];
+    if (key === "notif" && next) {
+      const permission = await requestNotificationPermission();
+      if (permission !== "granted") {
+        toast.show(
+          permission === "denied"
+            ? "Notifications bloquées par le navigateur — autorise-les dans ses réglages pour ce site."
+            : "Notifications non disponibles sur ce navigateur."
+        );
+        return; // don't flip it on if it can't actually notify anyone
+      }
+    }
+    updateSettings.mutate({ [key]: next });
+  }
 
   async function saveAccount() {
     await updateMe.mutateAsync({ displayName, className });
@@ -71,11 +123,6 @@ export function SettingsPage() {
     } catch (err) {
       setPasswordError(pbErrorMessage(err, "Mot de passe actuel incorrect."));
     }
-  }
-
-  async function onDeleteAccount() {
-    await deleteAccount.mutateAsync();
-    navigate("/login");
   }
 
   async function onExport() {
@@ -101,7 +148,7 @@ export function SettingsPage() {
     (trash?.categories.length ?? 0) + (trash?.subjects.length ?? 0) + (trash?.chapters.length ?? 0) + (trash?.questions.length ?? 0) + (trash?.notes.length ?? 0);
 
   const prefs: { key: "notif" | "sons" | "anim" | "mix_subjects"; label: string; hint: string }[] = [
-    { key: "notif", label: "Notifications", hint: "Un rappel quotidien à 18 h 30" },
+    { key: "notif", label: "Notifications", hint: "Rappel des révisions en attente, quand l'app est ouverte" },
     { key: "sons", label: "Sons", hint: "Retour sonore en fin de session" },
     { key: "anim", label: "Animations", hint: "Suit aussi la préférence système" },
     { key: "mix_subjects", label: "Mélanger les matières", hint: "Une session peut croiser plusieurs matières" },
@@ -173,7 +220,7 @@ export function SettingsPage() {
                 style={{ border: `1px solid ${active ? "var(--accent-line)" : "var(--border)"}` }}
               >
                 <div className="h-[54px] rounded-md p-2.5 flex flex-col gap-1.5 justify-end" style={{ background: sw.bg, border: "1px solid var(--border2)" }}>
-                  <div className="w-[38%] h-[7px] rounded-full" style={{ background: "var(--accent)" }} />
+                  <div className="w-[38%] h-[7px] rounded-full" style={{ background: sw.accent }} />
                   <div className="w-[68%] h-[7px] rounded-full" style={{ background: sw.track }} />
                 </div>
                 <div className="flex items-center gap-1.5">
@@ -199,7 +246,7 @@ export function SettingsPage() {
                 <div className="text-[13.5px]">{p.label}</div>
                 <div className="text-[11.5px]" style={{ color: "var(--faint)" }}>{p.hint}</div>
               </div>
-              <Switch checked={settings[p.key]} onChange={() => updateSettings.mutate({ [p.key]: !settings[p.key] })} label={p.label} />
+              <Switch checked={settings[p.key]} onChange={() => onTogglePref(p.key)} label={p.label} />
             </div>
           ))}
         </div>
@@ -217,11 +264,9 @@ export function SettingsPage() {
           ].map((f) => (
             <label key={f.key} className="block">
               <span className="block text-xs mb-1.5 text-muted">{f.label}</span>
-              <Input
-                type="number"
-                min={1}
+              <NumberField
                 value={settings[f.key]}
-                onChange={(e) => updateSettings.mutate({ [f.key]: Number(e.target.value) || 1 } as Partial<UserSettings>)}
+                onCommit={(n) => updateSettings.mutate({ [f.key]: n } as Partial<UserSettings>)}
               />
             </label>
           ))}
@@ -318,22 +363,8 @@ export function SettingsPage() {
           </div>
         )}
 
-        <div className="flex gap-2.5 flex-wrap mt-3 mb-3">
+        <div className="flex gap-2.5 flex-wrap mt-3">
           <Button onClick={() => logout.mutate()}><i className="ph ph-sign-out" style={{ fontSize: 15 }} /> Se déconnecter</Button>
-        </div>
-        <div className="p-[14px_15px] rounded-lg flex items-center gap-3.5 flex-wrap" style={{ border: "1px solid var(--err-line)" }}>
-          <div className="flex-1 min-w-[170px]">
-            <div className="text-[13.5px]" style={{ color: "var(--err)" }}>Supprimer mon compte</div>
-            <div className="text-[11.5px]" style={{ color: "var(--faint)" }}>Définitif. Tes matières, questions et statistiques seront effacées.</div>
-          </div>
-          {confirmDelete ? (
-            <div className="flex gap-2">
-              <Button variant="danger" size="sm" onClick={onDeleteAccount} disabled={deleteAccount.isPending}>Confirmer la suppression</Button>
-              <Button size="sm" onClick={() => setConfirmDelete(false)}>Annuler</Button>
-            </div>
-          ) : (
-            <Button variant="danger" onClick={() => setConfirmDelete(true)}>Supprimer</Button>
-          )}
         </div>
       </section>
     </div>

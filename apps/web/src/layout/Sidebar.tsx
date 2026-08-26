@@ -8,6 +8,7 @@ import { cn } from "@/lib/cn";
 export function Sidebar({ user, dueCount }: { user: AppUser; dueCount: number }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const settingsActive = pathname === "/settings";
 
   return (
     <div className="hidden md:flex flex-col gap-[5px] w-[62px] lg:w-[234px] flex-none px-3 py-4 border-r border-border bg-surface2">
@@ -28,6 +29,14 @@ export function Sidebar({ user, dueCount }: { user: AppUser; dueCount: number })
       >
         <i className="ph ph-play-circle" style={{ fontSize: 16 }} />
         <span className="hidden lg:inline">Nouvelle révision</span>
+        {dueCount > 0 && (
+          <span
+            className="hidden lg:inline ml-auto text-[11px] tabular-nums px-[7px] py-px rounded-full"
+            style={{ color: "var(--accent)", background: "var(--accent-soft2)" }}
+          >
+            {dueCount}
+          </span>
+        )}
       </button>
 
       <div className="flex flex-col gap-0.5 mt-1.5">
@@ -46,14 +55,6 @@ export function Sidebar({ user, dueCount }: { user: AppUser; dueCount: number })
             >
               <i className={item.icon} style={{ fontSize: 17 }} />
               <span className="hidden lg:inline">{item.label}</span>
-              {item.to === "/review" && dueCount > 0 && (
-                <span
-                  className="hidden lg:inline ml-auto text-[11px] tabular-nums px-[7px] py-px rounded-full"
-                  style={{ color: "var(--accent)", background: "var(--accent-soft)" }}
-                >
-                  {dueCount}
-                </span>
-              )}
             </NavLink>
           );
         })}
@@ -66,11 +67,21 @@ export function Sidebar({ user, dueCount }: { user: AppUser; dueCount: number })
             background: "linear-gradient(to right, transparent, var(--border) 24px, var(--border) calc(100% - 24px), transparent)",
           }}
         />
-        <button
-          type="button"
-          onClick={() => navigate("/settings")}
-          className="w-full flex items-center gap-2.5 px-2 py-[7px] rounded-md hover:bg-hover text-left"
+        <NavLink
+          to="/settings"
+          title="Paramètres"
+          className={cn(
+            "w-full flex items-center gap-2.5 px-2 lg:px-[9px] py-2 mb-0.5 rounded-md text-[13.5px] min-h-[38px] justify-center lg:justify-start",
+            settingsActive ? "font-medium" : "font-normal hover:bg-hover"
+          )}
+          style={settingsActive ? { color: "var(--accent)", background: "var(--accent-soft)" } : { color: "var(--text)" }}
         >
+          <i className="ph ph-sliders-horizontal" style={{ fontSize: 17 }} />
+          <span className="hidden lg:inline">Paramètres</span>
+        </NavLink>
+        {/* Just an identity readout, not a second way to reach Paramètres —
+            see nav.ts for why "/settings" isn't in sidebarNav too. */}
+        <div className="w-full flex items-center gap-2.5 px-2 py-[7px]">
           <Avatar initials={initials(user.name)} size={28} />
           <div className="hidden lg:block min-w-0">
             <div className="text-[13px] font-medium whitespace-nowrap overflow-hidden text-ellipsis">{user.name}</div>
@@ -78,7 +89,7 @@ export function Sidebar({ user, dueCount }: { user: AppUser; dueCount: number })
               {user.class_name}
             </div>
           </div>
-        </button>
+        </div>
       </div>
     </div>
   );
