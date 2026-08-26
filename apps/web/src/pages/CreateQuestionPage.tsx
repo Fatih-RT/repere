@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { Input, Select, Textarea } from "@/components/ui/Field";
 import { ImagePicker, extractPastedImages } from "@/components/ImagePicker";
 import { MathText } from "@/components/MathText";
+import { FormulaHelpButton } from "@/components/FormulaHelpButton";
 import { useToast } from "@/components/ui/Toast";
 import { pbErrorMessage } from "@/lib/pbErrors";
 
@@ -98,9 +99,12 @@ export function CreateQuestionPage() {
   return (
     <div className="animate-fade">
       <h1 className="m-0 mb-1 text-2xl font-medium tracking-tight">Nouvelle question</h1>
-      <p className="m-0 mb-[22px] text-[13.5px] text-muted">
-        <kbd className="px-1 py-0.5 rounded border border-border text-[11px]">Tab</kbd> pour passer à la réponse,{" "}
-        <kbd className="px-1 py-0.5 rounded border border-border text-[11px]">Ctrl+Entrée</kbd> pour enregistrer et enchaîner.
+      <p className="m-0 mb-[22px] text-[13.5px] text-muted flex items-center gap-3 flex-wrap">
+        <span>
+          <kbd className="px-1 py-0.5 rounded border border-border text-[11px]">Tab</kbd> pour passer à la réponse,{" "}
+          <kbd className="px-1 py-0.5 rounded border border-border text-[11px]">Ctrl+Entrée</kbd> pour enregistrer et enchaîner.
+        </span>
+        <FormulaHelpButton />
       </p>
 
       <div className="grid gap-[18px] items-start lg:grid-cols-[1.3fr_1fr]">

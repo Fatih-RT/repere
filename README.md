@@ -4,13 +4,21 @@ A personal spaced-repetition study app. The content hierarchy is
 **category → subject → chapter → question** (e.g. "L2 Chimie" → "Chimie
 organique" → "Réactions" → a question) — category is the only optional level,
 there purely to group subjects when a user is juggling more than one track
-at once (a degree and a competitive exam prep, say). Questions support
-KaTeX/mhchem and pasted images; review sessions run on an SM-2-derived
+at once (a degree and a competitive exam prep, say). Alongside questions,
+each subject (optionally scoped to one chapter) can also hold free-form
+**notes** — course content rather than flashcards, see `apps/web/src/lib/
+notes.ts` and `pb_migrations/1787658810_notes.js`. Questions and notes both
+support KaTeX/mhchem and pasted images/formulas (a dismissible "Aide
+formules" popover — `apps/web/src/components/FormulaHelpButton.tsx` — is
+available wherever you'd type one); review sessions run on an SM-2-derived
 scheduler; there's a Pomodoro timer, a dashboard/statistics, and a
-never-auto-emptied trash (see "Trash" below). Built for exactly two users,
-both created by hand from the PocketBase Admin UI — there is no public
-sign-up. `apps/web/src/pages/RegisterPage.tsx` is kept in the repo but not
-routed; see `pb_migrations/1787658780_close_registration.js`.
+never-auto-emptied trash (see "Trash" below). Installable on iPhone/iPad via
+Safari's "Add to Home Screen" (same build, same PocketBase backend — nothing
+syncs separately, see `apps/web/public/manifest.webmanifest`), and works as
+a normal website everywhere else. Built for exactly two users, both created
+by hand from the PocketBase Admin UI — there is no public sign-up.
+`apps/web/src/pages/RegisterPage.tsx` is kept in the repo but not routed;
+see `pb_migrations/1787658780_close_registration.js`.
 
 ## Architecture
 
@@ -148,7 +156,7 @@ easy to forget them on a fresh deploy. Do both from `/_/` → **Settings**:
 
 ### Trash
 
-Deleting a category, subject, chapter, or question never removes it right
+Deleting a category, subject, chapter, question, or note never removes it right
 away — it's soft-deleted (`deleted_at` set) and shows up in **Paramètres →
 Corbeille** with a "Restaurer" button, alongside a 5-second "Annuler" toast
 at the moment of deletion itself. A `pb_hooks` cron (`pb_hooks/purge_trash.pb.js`)
@@ -162,14 +170,17 @@ A few rules worth knowing if you're touching this code:
   is not a cascading relation on purpose. A subject whose category was
   deleted (or is mid-30-day-countdown in the trash) just renders under
   "Sans catégorie" until the category is restored.
-- Deleting a subject or chapter **does** cascade — to its chapters/questions,
-  or just its questions, respectively — so trashing a subject actually hides
-  everything under it, and restoring it brings all of that back together.
-  See `buildSubjectCascadePlan`/`buildChapterCascadePlan` in
-  `apps/web/src/lib/subjects.ts`.
+- Deleting a subject or chapter **does** cascade — to its chapters/questions
+  /notes, or just its questions/notes, respectively — so trashing a subject
+  actually hides everything under it, and restoring it brings all of that
+  back together. See `buildSubjectCascadePlan`/`buildChapterCascadePlan` in
+  `apps/web/src/lib/subjects.ts`. A note's own `chapter` relation is
+  optional and non-cascading, same reasoning as `subjects.category`: it's
+  the app-level cascade above, not the schema, that decides a note's fate
+  when its chapter goes.
 - `review_logs` are never deleted, by anything, ever — not by the purge
-  cron (it only targets `categories`/`subjects`/`chapters`/`questions`), and
-  not by any UI action. A log's `question`/`session` relations quietly go
+  cron (it only targets `categories`/`subjects`/`chapters`/`questions`/
+  `notes`), and not by any UI action. A log's `question`/`session` relations quietly go
   empty once the record they pointed to is purged, but `question_text`/
   `answer_text` (snapshotted at review time) keep the log readable forever —
   see the manual test below.

@@ -92,12 +92,13 @@ export function SettingsPage() {
     }
   }
 
-  async function onRestore(kind: "category" | "subject" | "chapter" | "question", id: string, label: string) {
+  async function onRestore(kind: "category" | "subject" | "chapter" | "question" | "note", id: string, label: string) {
     await restoreFromTrash(kind, id);
     toast.show(`« ${label} » restauré${kind === "chapter" ? "" : "e"}.`);
   }
 
-  const trashCount = (trash?.categories.length ?? 0) + (trash?.subjects.length ?? 0) + (trash?.chapters.length ?? 0) + (trash?.questions.length ?? 0);
+  const trashCount =
+    (trash?.categories.length ?? 0) + (trash?.subjects.length ?? 0) + (trash?.chapters.length ?? 0) + (trash?.questions.length ?? 0) + (trash?.notes.length ?? 0);
 
   const prefs: { key: "notif" | "sons" | "anim" | "mix_subjects"; label: string; hint: string }[] = [
     { key: "notif", label: "Notifications", hint: "Un rappel quotidien à 18 h 30" },
@@ -298,6 +299,18 @@ export function SettingsPage() {
                       <div className="text-[11px] truncate" style={{ color: "var(--faint)" }}>{q.subjectName} · {q.chapterName} · {relativeFr(q.deleted_at).replace(/^Révisé /, "Supprimée ")}</div>
                     </div>
                     <Button size="sm" onClick={() => onRestore("question", q.id, "Question")}>Restaurer</Button>
+                  </div>
+                ))}
+                {trash?.notes.map((n, i) => (
+                  <div key={n.id} className="flex items-center gap-3 p-[11px_14px]" style={{ borderTop: i || trash.categories.length || trash.subjects.length || trash.chapters.length || trash.questions.length ? "1px solid var(--border)" : "none" }}>
+                    <i className="ph ph-note" style={{ fontSize: 14, color: "var(--faint)" }} />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[13px] truncate">{n.title}</div>
+                      <div className="text-[11px] truncate" style={{ color: "var(--faint)" }}>
+                        {n.subjectName}{n.chapterName ? ` · ${n.chapterName}` : ""} · {relativeFr(n.deleted_at).replace(/^Révisé /, "Supprimée ")}
+                      </div>
+                    </div>
+                    <Button size="sm" onClick={() => onRestore("note", n.id, n.title)}>Restaurer</Button>
                   </div>
                 ))}
               </div>

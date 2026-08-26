@@ -63,6 +63,21 @@ export interface Chapter {
   updated: string;
 }
 
+export interface Note {
+  id: string;
+  user: string;
+  subject: string;
+  // Empty string = the note covers the whole matière, not one chapter —
+  // same "empty relation = none" convention as subjects.category.
+  chapter: string;
+  title: string;
+  content: string;
+  position: number;
+  deleted_at: string;
+  created: string;
+  updated: string;
+}
+
 export interface Question {
   id: string;
   user: string;

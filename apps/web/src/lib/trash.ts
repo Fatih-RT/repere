@@ -4,13 +4,15 @@ import { useAuth } from "./auth";
 import { useRestoreSubject, useRestoreChapter } from "./subjects";
 import { useRestoreQuestion } from "./questions";
 import { useRestoreCategory } from "./categories";
-import type { Category, Chapter, Question, Subject } from "./types";
+import { useRestoreNote } from "./notes";
+import type { Category, Chapter, Note, Question, Subject } from "./types";
 
 export interface TrashData {
   categories: Category[];
   subjects: Subject[];
   chapters: (Chapter & { subjectName: string })[];
   questions: (Question & { subjectName: string; chapterName: string })[];
+  notes: (Note & { subjectName: string; chapterName: string })[];
 }
 
 export function useTrash() {
@@ -18,12 +20,13 @@ export function useTrash() {
   return useQuery({
     queryKey: ["trash", user?.id],
     queryFn: async (): Promise<TrashData> => {
-      const [trashedCategories, trashedSubjects, trashedChapters, trashedQuestions, allSubjects, allChapters] = await Promise.all([
+      const [trashedCategories, trashedSubjects, trashedChapters, trashedQuestions, trashedNotes, allSubjects, allChapters] = await Promise.all([
         pb.collection("categories").getFullList<Category>({ filter: "deleted_at != \"\"", sort: "-deleted_at" }),
         pb.collection("subjects").getFullList<Subject>({ filter: "deleted_at != \"\"", sort: "-deleted_at" }),
         pb.collection("chapters").getFullList<Chapter>({ filter: "deleted_at != \"\"", sort: "-deleted_at" }),
         pb.collection("questions").getFullList<Question>({ filter: "deleted_at != \"\"", sort: "-deleted_at" }),
-        // Unfiltered (active + trashed) so a trashed chapter/question can
+        pb.collection("notes").getFullList<Note>({ filter: "deleted_at != \"\"", sort: "-deleted_at" }),
+        // Unfiltered (active + trashed) so a trashed chapter/question/note can
         // still show its parent's name even if the parent isn't itself trashed.
         pb.collection("subjects").getFullList<Subject>(),
         pb.collection("chapters").getFullList<Chapter>(),
@@ -35,6 +38,7 @@ export function useTrash() {
         subjects: trashedSubjects,
         chapters: trashedChapters.map((c) => ({ ...c, subjectName: subjectName.get(c.subject) ?? "?" })),
         questions: trashedQuestions.map((q) => ({ ...q, subjectName: subjectName.get(q.subject) ?? "?", chapterName: chapterName.get(q.chapter) ?? "?" })),
+        notes: trashedNotes.map((n) => ({ ...n, subjectName: subjectName.get(n.subject) ?? "?", chapterName: n.chapter ? chapterName.get(n.chapter) ?? "?" : "" })),
       };
     },
     enabled: !!user,
@@ -47,14 +51,19 @@ export function useRestoreFromTrash() {
   const restoreSubject = useRestoreSubject();
   const restoreChapter = useRestoreChapter();
   const restoreQuestion = useRestoreQuestion();
+  const restoreNote = useRestoreNote();
 
-  async function restore(kind: "category" | "subject" | "chapter" | "question", id: string) {
+  async function restore(kind: "category" | "subject" | "chapter" | "question" | "note", id: string) {
     if (kind === "category") await restoreCategory.mutateAsync(id);
     else if (kind === "subject") await restoreSubject.mutateAsync(id);
     else if (kind === "chapter") await restoreChapter.mutateAsync(id);
+    else if (kind === "note") await restoreNote.mutateAsync(id);
     else await restoreQuestion.mutateAsync(id);
     qc.invalidateQueries({ queryKey: ["trash"] });
   }
 
-  return { restore, isPending: restoreCategory.isPending || restoreSubject.isPending || restoreChapter.isPending || restoreQuestion.isPending };
+  return {
+    restore,
+    isPending: restoreCategory.isPending || restoreSubject.isPending || restoreChapter.isPending || restoreQuestion.isPending || restoreNote.isPending,
+  };
 }

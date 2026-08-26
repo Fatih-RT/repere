@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { pb } from "./pb";
 import { avgMastery } from "./scheduler";
-import type { Chapter, Question, Subject } from "./types";
+import type { Chapter, Note, Question, Subject } from "./types";
 
 export interface SubjectSummary extends Subject {
   chaptersCount: number;
@@ -179,14 +179,14 @@ export function useUpdateSubject() {
 }
 
 export interface CascadeOp {
-  collection: "subjects" | "chapters" | "questions";
+  collection: "subjects" | "chapters" | "questions" | "notes";
   id: string;
   deleted_at: string;
 }
 
 // Pure: the exact set of writes a subject-level soft-delete/restore must
-// perform — the subject itself plus every one of its chapters and
-// questions, so they actually disappear from (or come back to) every
+// perform — the subject itself plus every one of its chapters, questions
+// and notes, so they actually disappear from (or come back to) every
 // "active" list. The schema's `cascadeDelete: true` only fires on a hard
 // delete, never this soft one, hence doing it by hand here. Restoring a
 // subject restores every child regardless of whether that specific child
@@ -194,11 +194,18 @@ export interface CascadeOp {
 // personal, two-user app rather than tracking per-record "why was this
 // deleted" provenance. Kept separate from the network calls so the actual
 // fan-out logic is unit-testable — see subjects.test.ts.
-export function buildSubjectCascadePlan(subjectId: string, chapters: { id: string }[], questions: { id: string }[], deletedAt: string): CascadeOp[] {
+export function buildSubjectCascadePlan(
+  subjectId: string,
+  chapters: { id: string }[],
+  questions: { id: string }[],
+  notes: { id: string }[],
+  deletedAt: string
+): CascadeOp[] {
   return [
     { collection: "subjects", id: subjectId, deleted_at: deletedAt },
     ...chapters.map((c) => ({ collection: "chapters" as const, id: c.id, deleted_at: deletedAt })),
     ...questions.map((q) => ({ collection: "questions" as const, id: q.id, deleted_at: deletedAt })),
+    ...notes.map((n) => ({ collection: "notes" as const, id: n.id, deleted_at: deletedAt })),
   ];
 }
 
@@ -211,11 +218,12 @@ export function useSoftDeleteSubject() {
   return useMutation({
     mutationFn: async (id: string) => {
       const deleted_at = new Date().toISOString();
-      const [chapters, questions] = await Promise.all([
+      const [chapters, questions, notes] = await Promise.all([
         fetchActive<Chapter>("chapters", pb.filter("subject = {:id}", { id })),
         fetchActive<Question>("questions", pb.filter("subject = {:id}", { id })),
+        fetchActive<Note>("notes", pb.filter("subject = {:id}", { id })),
       ]);
-      await runCascadePlan(buildSubjectCascadePlan(id, chapters, questions, deleted_at));
+      await runCascadePlan(buildSubjectCascadePlan(id, chapters, questions, notes, deleted_at));
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["subjects"] }),
   });
@@ -225,11 +233,12 @@ export function useRestoreSubject() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const [chapters, questions] = await Promise.all([
+      const [chapters, questions, notes] = await Promise.all([
         pb.collection("chapters").getFullList<Chapter>({ filter: pb.filter("subject = {:id} && deleted_at != \"\"", { id }) }),
         pb.collection("questions").getFullList<Question>({ filter: pb.filter("subject = {:id} && deleted_at != \"\"", { id }) }),
+        pb.collection("notes").getFullList<Note>({ filter: pb.filter("subject = {:id} && deleted_at != \"\"", { id }) }),
       ]);
-      await runCascadePlan(buildSubjectCascadePlan(id, chapters, questions, ""));
+      await runCascadePlan(buildSubjectCascadePlan(id, chapters, questions, notes, ""));
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["subjects"] }),
   });
@@ -260,11 +269,12 @@ export function useUpdateChapter() {
 }
 
 // Same idea as buildSubjectCascadePlan, one level down: a chapter-level
-// soft-delete/restore also touches every one of its own questions.
-export function buildChapterCascadePlan(chapterId: string, questions: { id: string }[], deletedAt: string): CascadeOp[] {
+// soft-delete/restore also touches every one of its own questions and notes.
+export function buildChapterCascadePlan(chapterId: string, questions: { id: string }[], notes: { id: string }[], deletedAt: string): CascadeOp[] {
   return [
     { collection: "chapters", id: chapterId, deleted_at: deletedAt },
     ...questions.map((q) => ({ collection: "questions" as const, id: q.id, deleted_at: deletedAt })),
+    ...notes.map((n) => ({ collection: "notes" as const, id: n.id, deleted_at: deletedAt })),
   ];
 }
 
@@ -273,8 +283,11 @@ export function useSoftDeleteChapter() {
   return useMutation({
     mutationFn: async (id: string) => {
       const deleted_at = new Date().toISOString();
-      const questions = await fetchActive<Question>("questions", pb.filter("chapter = {:id}", { id }));
-      await runCascadePlan(buildChapterCascadePlan(id, questions, deleted_at));
+      const [questions, notes] = await Promise.all([
+        fetchActive<Question>("questions", pb.filter("chapter = {:id}", { id })),
+        fetchActive<Note>("notes", pb.filter("chapter = {:id}", { id })),
+      ]);
+      await runCascadePlan(buildChapterCascadePlan(id, questions, notes, deleted_at));
       return pb.collection("chapters").getOne<Chapter>(id);
     },
     onSuccess: (chapter) => {
@@ -288,8 +301,11 @@ export function useRestoreChapter() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      const questions = await pb.collection("questions").getFullList<Question>({ filter: pb.filter("chapter = {:id} && deleted_at != \"\"", { id }) });
-      await runCascadePlan(buildChapterCascadePlan(id, questions, ""));
+      const [questions, notes] = await Promise.all([
+        pb.collection("questions").getFullList<Question>({ filter: pb.filter("chapter = {:id} && deleted_at != \"\"", { id }) }),
+        pb.collection("notes").getFullList<Note>({ filter: pb.filter("chapter = {:id} && deleted_at != \"\"", { id }) }),
+      ]);
+      await runCascadePlan(buildChapterCascadePlan(id, questions, notes, ""));
       return pb.collection("chapters").getOne<Chapter>(id);
     },
     onSuccess: (chapter) => {
