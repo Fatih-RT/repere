@@ -5,7 +5,10 @@ import { cn } from "@/lib/cn";
 export function BottomNav() {
   const { pathname } = useLocation();
   return (
-    <div className="md:hidden flex items-stretch gap-0.5 px-2 pt-[7px] pb-[9px] border-t border-border bg-surface2">
+    <div
+      className="md:hidden flex items-stretch gap-0.5 px-2 pt-[7px] sticky bottom-0 border-t border-border bg-surface2"
+      style={{ paddingBottom: "max(9px, env(safe-area-inset-bottom))" }}
+    >
       {bottomNav.map((item) => {
         const active = item.match(pathname);
         const mid = item.to === "/review";

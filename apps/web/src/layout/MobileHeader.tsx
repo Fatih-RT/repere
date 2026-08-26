@@ -6,9 +6,14 @@ import { initials } from "@/lib/format";
 export function MobileHeader({ user, streak }: { user: AppUser; streak: number }) {
   const navigate = useNavigate();
   return (
-    <div className="md:hidden flex items-center gap-2.5 px-4 py-3 border-b border-border">
-      <div className="w-2.5 h-2.5 rotate-45 rounded-[1px]" style={{ background: "var(--accent)" }} />
-      <span className="font-medium text-[15px] tracking-tight mr-auto">Repère</span>
+    <div
+      className="md:hidden flex items-center gap-2.5 px-4 pb-3 border-b border-border"
+      style={{ paddingTop: "max(12px, env(safe-area-inset-top))" }}
+    >
+      <button type="button" onClick={() => navigate("/dashboard")} className="flex items-center gap-2.5 mr-auto">
+        <div className="w-2.5 h-2.5 rotate-45 rounded-[1px]" style={{ background: "var(--accent)" }} />
+        <span className="font-medium text-[15px] tracking-tight">Repère</span>
+      </button>
       <div className="inline-flex items-center gap-[5px] px-[9px] py-1 border border-border rounded-full text-xs">
         <i className="ph-fill ph-flame" style={{ fontSize: 13, color: "var(--accent)" }} />
         <span className="tabular-nums">{streak}</span>

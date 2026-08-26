@@ -11,7 +11,7 @@ export function AppShell({ user }: { user: AppUser }) {
   const streak = data?.streak.current ?? 0;
 
   return (
-    <div className="min-h-screen flex flex-col bg-bg text-text">
+    <div className="min-h-screen min-h-[100dvh] flex flex-col bg-bg text-text">
       <MobileHeader user={user} streak={streak} />
       <div className="flex-1 flex min-h-0">
         <Sidebar user={user} dueCount={dueCount} />

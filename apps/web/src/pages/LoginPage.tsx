@@ -24,7 +24,7 @@ export function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen grid place-items-center px-5 bg-bg text-text">
+    <div className="min-h-screen min-h-[100dvh] grid place-items-center px-5 bg-bg text-text">
       <div className="w-full max-w-[340px] animate-rise">
         <div className="flex items-center gap-[9px] mb-8">
           <div className="w-[11px] h-[11px] rotate-45 rounded-[1px]" style={{ background: "var(--accent)" }} />

@@ -136,7 +136,7 @@ export function ReviewSessionPage() {
 
   if (isLoading || !library || queue === undefined) {
     return (
-      <div className="min-h-screen grid place-items-center bg-bg p-6">
+      <div className="min-h-screen min-h-[100dvh] grid place-items-center bg-bg p-6">
         <Skeleton className="h-64 w-full max-w-[620px]" />
       </div>
     );
@@ -144,7 +144,7 @@ export function ReviewSessionPage() {
 
   if (!queue?.length) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4 bg-bg p-6 text-center">
+      <div className="min-h-screen min-h-[100dvh] flex flex-col items-center justify-center gap-4 bg-bg p-6 text-center">
         <p className="text-[15px] text-muted" style={{ textWrap: "pretty" }}>
           Rien à réviser pour l'instant — reviens plus tard ou ajoute de nouvelles questions.
         </p>
@@ -165,7 +165,7 @@ export function ReviewSessionPage() {
   const barPct = ((index + (revealed ? 0.5 : 0)) / total) * 100;
 
   return (
-    <div className="min-h-screen flex flex-col bg-bg relative overflow-hidden">
+    <div className="min-h-screen min-h-[100dvh] flex flex-col bg-bg relative overflow-hidden">
       <div
         className="absolute pointer-events-none"
         style={{
@@ -173,7 +173,7 @@ export function ReviewSessionPage() {
           background: "radial-gradient(closest-side, var(--accent-soft), transparent)",
         }}
       />
-      <div className="relative flex items-center gap-3.5 p-[14px_18px]">
+      <div className="relative flex items-center gap-3.5 px-[18px] pb-[14px]" style={{ paddingTop: "max(14px, env(safe-area-inset-top))" }}>
         <button
           type="button"
           onClick={quit}

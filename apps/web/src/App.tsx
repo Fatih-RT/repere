@@ -15,6 +15,7 @@ const CreateQuestionPage = lazy(() => import("@/pages/CreateQuestionPage").then(
 const ReviewHubPage = lazy(() => import("@/pages/ReviewHubPage").then((m) => ({ default: m.ReviewHubPage })));
 const ReviewSessionPage = lazy(() => import("@/pages/ReviewSessionPage").then((m) => ({ default: m.ReviewSessionPage })));
 const ReviewSummaryPage = lazy(() => import("@/pages/ReviewSummaryPage").then((m) => ({ default: m.ReviewSummaryPage })));
+const NotesPage = lazy(() => import("@/pages/NotesPage").then((m) => ({ default: m.NotesPage })));
 const PomodoroPage = lazy(() => import("@/pages/PomodoroPage").then((m) => ({ default: m.PomodoroPage })));
 const StatsPage = lazy(() => import("@/pages/StatsPage").then((m) => ({ default: m.StatsPage })));
 const SettingsPage = lazy(() => import("@/pages/SettingsPage").then((m) => ({ default: m.SettingsPage })));
@@ -22,7 +23,7 @@ const NotFoundPage = lazy(() => import("@/pages/NotFoundPage").then((m) => ({ de
 
 function Splash() {
   return (
-    <div className="min-h-screen grid place-items-center bg-bg text-muted text-sm">
+    <div className="min-h-screen min-h-[100dvh] grid place-items-center bg-bg text-muted text-sm">
       Chargement…
     </div>
   );
@@ -80,6 +81,7 @@ export default function App() {
             <Route path="/create" element={<CreateQuestionPage />} />
             <Route path="/review" element={<ReviewHubPage />} />
             <Route path="/pomodoro" element={<PomodoroPage />} />
+            <Route path="/notes" element={<NotesPage />} />
             <Route path="/stats" element={<StatsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="*" element={<NotFoundPage />} />

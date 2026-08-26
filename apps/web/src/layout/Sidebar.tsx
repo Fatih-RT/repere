@@ -11,10 +11,14 @@ export function Sidebar({ user, dueCount }: { user: AppUser; dueCount: number })
 
   return (
     <div className="hidden md:flex flex-col gap-[5px] w-[62px] lg:w-[234px] flex-none px-3 py-4 border-r border-border bg-surface2">
-      <div className="flex items-center gap-2 px-2 pb-0.5">
+      <button
+        type="button"
+        onClick={() => navigate("/dashboard")}
+        className="flex items-center gap-2 px-2 pb-0.5 self-start"
+      >
         <div className="w-2.5 h-2.5 rotate-45 rounded-[1px]" style={{ background: "var(--accent)" }} />
         <span className="hidden lg:inline font-medium text-[15.5px] tracking-tight">Repère</span>
-      </div>
+      </button>
 
       <button
         type="button"

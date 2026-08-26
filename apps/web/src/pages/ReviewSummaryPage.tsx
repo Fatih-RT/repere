@@ -28,7 +28,7 @@ export function ReviewSummaryPage() {
   ];
 
   return (
-    <div className="min-h-screen grid place-items-center p-6 bg-bg relative overflow-hidden">
+    <div className="min-h-screen min-h-[100dvh] grid place-items-center p-6 bg-bg relative overflow-hidden">
       <div
         className="absolute pointer-events-none"
         style={{

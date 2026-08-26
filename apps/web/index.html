@@ -2,10 +2,24 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
     <title>Repère</title>
+
+    <!-- PWA: installable on iPhone/iPad via Safari's "Add to Home Screen" and
+         on desktop/Android via the browser's install prompt. Same build, same
+         PocketBase backend either way — nothing here changes how data syncs. -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#161826" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="icon" href="/icon-192.png" />
+    <!-- iOS ignores the manifest's `display` field on its own — these three
+         are what actually make "Add to Home Screen" launch full-screen
+         without Safari's chrome. -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Repère" />
   </head>
   <body>
     <div id="root"></div>
