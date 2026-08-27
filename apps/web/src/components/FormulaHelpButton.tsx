@@ -56,6 +56,12 @@ const SECTIONS: MemoSection[] = [
   },
 ];
 
+// Structures moléculaires: not an entry in SECTIONS above, since its example
+// syntax ($smiles{...}$) isn't meant to be typed by hand — it's inserted by
+// the suggestion dropdown that appears while typing a formula or a name
+// (e.g. "C6H12O6" or "glucose"), or by pasting a SMILES directly. This just
+// explains that behavior in words instead of a syntax row to copy.
+
 // Every $...$ becomes an inline formula, $$...$$ a centered block one —
 // see MathText.tsx. This memo is the reference for that syntax, dropped
 // wherever someone is actually about to type a formula (question/réponse,
@@ -100,6 +106,13 @@ export function FormulaHelpButton() {
               </div>
             </div>
           ))}
+          <div>
+            <div className="text-[11px] tracking-[0.1em] uppercase mb-2" style={{ color: "var(--faint)" }}>Structures moléculaires</div>
+            <div className="border border-border rounded-lg bg-surface2 p-[9px_12px] text-[12px]" style={{ color: "var(--text)", textWrap: "pretty" }}>
+              Tape une formule (<code>C6H12O6</code>) ou un nom (<code>glucose</code>) : un menu propose la structure à insérer.
+              Coller un SMILES l'insère directement. Fonctionne dans les questions, réponses et notes.
+            </div>
+          </div>
         </div>
       </Modal>
     </>

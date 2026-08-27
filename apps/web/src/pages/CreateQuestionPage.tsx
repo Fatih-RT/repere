@@ -2,10 +2,11 @@ import { useRef, useState } from "react";
 import { useCreateChapter, useSubject, useSubjects } from "@/lib/subjects";
 import { useCreateQuestion } from "@/lib/questions";
 import { Button } from "@/components/ui/Button";
-import { Input, Select, Textarea } from "@/components/ui/Field";
+import { Input, Select } from "@/components/ui/Field";
 import { ImagePicker, extractPastedImages } from "@/components/ImagePicker";
-import { MathText } from "@/components/MathText";
+import { MathText, MoleculeStrip } from "@/components/MathText";
 import { FormulaHelpButton } from "@/components/FormulaHelpButton";
+import { MoleculeAwareTextarea } from "@/components/MoleculeAwareTextarea";
 import { useToast } from "@/components/ui/Toast";
 import { pbErrorMessage } from "@/lib/pbErrors";
 
@@ -112,16 +113,19 @@ export function CreateQuestionPage() {
           <div className="grid gap-3 md:grid-cols-2">
             <label className="block">
               <span className="block text-xs mb-1.5 text-muted">
-                Question <span style={{ color: "var(--faint)" }}>· $\LaTeX$ et \ce{"{H2O}"} pour la chimie</span>
+                Question{" "}
+                <span style={{ color: "var(--faint)" }}>
+                  · $\LaTeX$, \ce{"{H2O}"} pour une équation, ou tape une formule/un nom (ex. C6H12O6, glucose) pour une structure
+                </span>
               </span>
-              <Textarea
+              <MoleculeAwareTextarea
                 ref={questionRef}
                 autoFocus
                 tabIndex={1}
                 className="min-h-[110px] text-[15px]"
                 placeholder="En quelle année commence la Première Guerre mondiale ? Ou : $\ce{2H2 + O2 -> 2H2O}$"
                 value={question}
-                onChange={(e) => setQuestion(e.target.value)}
+                onChange={setQuestion}
                 onKeyDown={onCtrlEnter}
                 onPaste={(e) => {
                   const files = extractPastedImages(e);
@@ -130,21 +134,22 @@ export function CreateQuestionPage() {
               />
               {question.trim() && (
                 <div className="mt-2 p-2.5 rounded-md text-sm" style={{ background: "var(--surface2)", border: "1px solid var(--border)" }}>
-                  <MathText text={question} />
+                  <MathText text={question} smilesPlacement="omit" />
                 </div>
               )}
+              <MoleculeStrip text={question} className="mt-2" />
               <div className="mt-2">
                 <ImagePicker label="Coller (Ctrl+V) ou ajouter une photo" images={questionImages} onChange={setQuestionImages} />
               </div>
             </label>
             <label className="block">
               <span className="block text-xs mb-1.5 text-muted">Réponse</span>
-              <Textarea
+              <MoleculeAwareTextarea
                 tabIndex={2}
                 className="min-h-[110px] text-[15px]"
                 placeholder="1914"
                 value={answer}
-                onChange={(e) => setAnswer(e.target.value)}
+                onChange={setAnswer}
                 onKeyDown={onCtrlEnter}
                 onPaste={(e) => {
                   const files = extractPastedImages(e);
@@ -153,9 +158,10 @@ export function CreateQuestionPage() {
               />
               {answer.trim() && (
                 <div className="mt-2 p-2.5 rounded-md text-sm" style={{ background: "var(--surface2)", border: "1px solid var(--border)", color: "var(--accent)" }}>
-                  <MathText text={answer} />
+                  <MathText text={answer} smilesPlacement="omit" />
                 </div>
               )}
+              <MoleculeStrip text={answer} className="mt-2" />
               <div className="mt-2">
                 <ImagePicker label="Coller (Ctrl+V) ou ajouter une photo" images={answerImages} onChange={setAnswerImages} />
               </div>
@@ -217,7 +223,8 @@ export function CreateQuestionPage() {
               <div className="flex flex-col gap-2.5">
                 {created.map((c, i) => (
                   <div key={i} className="p-[10px_11px] border border-border rounded-md bg-surface2 animate-rise">
-                    <div className="text-[13px] mb-1"><MathText text={c.q} /></div>
+                    <div className="text-[13px] mb-1"><MathText text={c.q} smilesPlacement="omit" /></div>
+                    <MoleculeStrip text={c.q} className="mb-1" />
                     <div className="text-[11.5px]" style={{ color: "var(--faint)" }}>{c.meta}</div>
                   </div>
                 ))}

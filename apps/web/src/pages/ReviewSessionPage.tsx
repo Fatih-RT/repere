@@ -7,7 +7,7 @@ import { easeToDifficulty } from "@/lib/scheduler";
 import { useSettings } from "@/lib/queries";
 import { playChime } from "@/lib/sound";
 import type { Question, Rating, ReviewSessionMode } from "@/lib/types";
-import { MathText } from "@/components/MathText";
+import { MathText, MoleculeStrip } from "@/components/MathText";
 import { DiffTag } from "@/components/ui/Badge";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -201,8 +201,9 @@ export function ReviewSessionPage() {
         <div className="w-full max-w-[620px] p-[22px] md:p-8 bg-surface border border-border rounded-2xl shadow-lg">
           <div className="text-[11px] tracking-[.1em] uppercase mb-4" style={{ color: "var(--accent)" }}>Question</div>
           <div className="text-[22px] md:text-[29px] font-medium leading-[1.28] tracking-tight" style={{ textWrap: "pretty" }}>
-            <MathText text={current.question} />
+            <MathText text={current.question} smilesPlacement="omit" />
           </div>
+          <MoleculeStrip text={current.question} className="mt-3" />
           <ReviewImages question={current} filenames={current.question_images} />
           {revealed && (
             <div className="mt-6 animate-rise">
@@ -212,8 +213,9 @@ export function ReviewSessionPage() {
               />
               <div className="text-[11px] tracking-[.1em] uppercase mb-3" style={{ color: "var(--faint)" }}>Réponse</div>
               <div className="text-lg md:text-[23px] leading-[1.35] tracking-tight" style={{ color: "var(--accent)", textWrap: "pretty" }}>
-                <MathText text={current.answer} />
+                <MathText text={current.answer} smilesPlacement="omit" />
               </div>
+              <MoleculeStrip text={current.answer} className="mt-3" />
               <ReviewImages question={current} filenames={current.answer_images} />
             </div>
           )}

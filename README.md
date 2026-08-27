@@ -8,9 +8,10 @@ at once (a degree and a competitive exam prep, say). Alongside questions,
 each subject (optionally scoped to one chapter) can also hold free-form
 **notes** — course content rather than flashcards, see `apps/web/src/lib/
 notes.ts` and `pb_migrations/1787658810_notes.js`. Questions and notes both
-support KaTeX/mhchem and pasted images/formulas (a dismissible "Aide
+support KaTeX/mhchem, pasted images/formulas, and molecular structure
+diagrams (see "Molecular structures" below); a dismissible "Aide
 formules" popover — `apps/web/src/components/FormulaHelpButton.tsx` — is
-available wherever you'd type one); review sessions run on an SM-2-derived
+available wherever you'd type one; review sessions run on an SM-2-derived
 scheduler; there's a Pomodoro timer, a dashboard/statistics, and a
 never-auto-emptied trash (see "Trash" below). Installable on iPhone/iPad via
 Safari's "Add to Home Screen" (same build, same PocketBase backend — nothing
@@ -49,6 +50,55 @@ infra/               docker-compose.yml + .env.example for deployment
 Dockerfile           web-build (throwaway, for deploy.sh) + pocketbase targets
 deploy.sh            Builds the frontend and drops it into pb_public/
 ```
+
+## Molecular structures (`$smiles{...}$`)
+
+Alongside `$...$`/`$$...$$` KaTeX math and `\ce{}` (mhchem) equations,
+questions/answers and notes support a third kind of inline span:
+`$smiles{<SMILES string>}$`, rendered as a small 2D structure diagram
+instead of being handed to KaTeX. Nobody is expected to type the SMILES by
+hand — it's produced one of two ways while typing in any of those fields:
+
+- **Type a formula or a name** (e.g. `C6H12O6` or `glucose`) and a dropdown
+  offers the matching molecule(s) — with a thumbnail, name, formula and
+  short description — to insert. A formula alone is often ambiguous (four
+  different sugars share `C6H12O6`), which is the actual reason this is a
+  selector and not a guess: the concrete SMILES is decided at insertion
+  time, from a small local, hand-curated database
+  (`apps/web/src/lib/molecules.ts`, ~35 entries covering the L2 chemistry
+  program), never invented at render time.
+- **Paste a SMILES string directly** (e.g. from a textbook/tool) — a paste
+  that looks like SMILES (bond/branch/ring-closure punctuation) is wrapped
+  as `$smiles{...}$` immediately, no dropdown.
+
+Implementation notes:
+
+- `apps/web/src/components/MoleculeDrawing.tsx` is the single seam onto the
+  [smiles-drawer](https://github.com/reymond-group/smiles-drawer) npm
+  package (pure JS/SVG, no WASM/native dependency) that actually draws a
+  structure; it reads the app's theme tokens live off the DOM so it stays
+  legible in Dark/Light/Rose, and renders an "invalid structure" fallback
+  rather than throwing on a malformed SMILES.
+- `apps/web/src/components/MoleculeAwareTextarea.tsx` wraps a plain
+  `Textarea` with the live-detection dropdown and the paste interception,
+  without swallowing any of the props the fast-entry flow depends on —
+  Tab still moves focus normally, Ctrl+Enter is never intercepted even
+  while the dropdown is open, and candidate selection uses
+  `onMouseDown`+`preventDefault()` (not `onClick`) so the field is never
+  blurred. It also suppresses all suggestions while the cursor sits inside
+  an open `$...$` span (`isCursorInsideMath` in `molecules.ts`), which
+  covers `\ce{}` for free since `\ce{}` only ever appears inside one.
+- `MathText.tsx` renders the `$smiles{...}$` token as a small
+  (~118×92px), inline-block `<MoleculeDrawing>` — deliberately not a
+  full-width block — so it sits beside surrounding text and wraps with
+  it, same as an inline image would, rather than pushing a block
+  underneath. This is why it needs no separate layout in Notes/Cours vs.
+  Questions vs. Révisions: all three already render question/answer/note
+  text through `MathText`, so the same change lights up everywhere at
+  once. Like KaTeX's own output, this never uses
+  `dangerouslySetInnerHTML` with the raw SMILES string — the SVG is built
+  by smiles-drawer through the DOM API and mounted as a normal React ref,
+  and the SMILES itself is only ever passed down as a prop.
 
 ## Local development
 
@@ -273,7 +323,11 @@ place:
   own rendered output (`apps/web/src/components/MathText.tsx`), which runs
   in KaTeX's non-trust mode (`throwOnError: false`, no `trust` option
   enabled) — KaTeX itself is designed to safely render arbitrary
-  user-supplied LaTeX without emitting attacker-controllable HTML/JS.
+  user-supplied LaTeX without emitting attacker-controllable HTML/JS. The
+  `$smiles{...}$` molecule spans that same file renders (see "Molecular
+  structures" above) go through `<MoleculeDrawing>` as a normal React
+  prop instead — smiles-drawer builds the SVG via the DOM API, not string
+  injection.
 - All other user-supplied content (question/answer text outside of `$...$`
   math delimiters, subject/chapter names, etc.) is rendered as plain React
   children, which auto-escapes by default.

@@ -6,13 +6,14 @@ import { useTheme } from "@/theme/ThemeProvider";
 import { useToast } from "@/components/ui/Toast";
 import { pbErrorMessage } from "@/lib/pbErrors";
 import { Button } from "@/components/ui/Button";
-import { Input, Select, Textarea } from "@/components/ui/Field";
+import { Input, Select } from "@/components/ui/Field";
 import { ProgressBar } from "@/components/ui/ProgressBar";
 import { DueTag } from "@/components/ui/Badge";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Menu } from "@/components/ui/Menu";
 import { MathText } from "@/components/MathText";
 import { FormulaHelpButton } from "@/components/FormulaHelpButton";
+import { MoleculeAwareTextarea } from "@/components/MoleculeAwareTextarea";
 import { subjectHue } from "@/lib/visual";
 import { relativeFr } from "@/lib/format";
 import type { Note } from "@/lib/types";
@@ -69,9 +70,12 @@ function NewNoteForm({
       )}
       <label className="block">
         <span className="block text-xs mb-1.5 text-muted">
-          Contenu <span style={{ color: "var(--faint)" }}>· $\LaTeX$ et \ce{"{H2O}"} pour la chimie</span>
+          Contenu{" "}
+          <span style={{ color: "var(--faint)" }}>
+            · $\LaTeX$, \ce{"{H2O}"} pour une équation, ou tape une formule/un nom (ex. C6H12O6, glucose) pour une structure
+          </span>
         </span>
-        <Textarea className="min-h-[160px] text-[14px]" placeholder="Le pH mesure $-\log_{10}[H^+]$…" value={content} onChange={(e) => setContent(e.target.value)} />
+        <MoleculeAwareTextarea className="min-h-[160px] text-[14px]" placeholder="Le pH mesure $-\log_{10}[H^+]$…" value={content} onChange={setContent} />
         {content.trim() && (
           <div className="mt-2 p-2.5 rounded-md text-sm" style={{ background: "var(--surface2)", border: "1px solid var(--border)", whiteSpace: "pre-wrap" }}>
             <MathText text={content} />
@@ -122,7 +126,7 @@ function NoteCard({ note, chapterName, chapters }: { note: Note; chapterName: st
             {chapters.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </Select>
         )}
-        <Textarea className="min-h-[140px] text-[14px]" value={content} onChange={(e) => setContent(e.target.value)} />
+        <MoleculeAwareTextarea className="min-h-[140px] text-[14px]" value={content} onChange={setContent} />
         {content.trim() && (
           <div className="p-2.5 rounded-md text-sm" style={{ background: "var(--surface2)", border: "1px solid var(--border)", whiteSpace: "pre-wrap" }}>
             <MathText text={content} />
